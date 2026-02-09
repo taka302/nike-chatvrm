@@ -280,5 +280,763 @@ function initVRMViewer() {
 function loadDefaultModel() {
     const group = new THREE.Group();
 
-    const bodyGeometry = new THREE.BoxGeometry(0.4, 0.6, 0.3`
-
+    const bodyGeometry = new THREE.BoxGeometry(0.4, 0.6, 0.3);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x667eea,
+        metalness: 0.3,
+        roughness: 0.7
+    });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.y = 1.2;
+    group.add(body);
+
+    const headGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+    const headMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x8899ff,
+        metalness: 0.3,
+        roughness: 0.7
+    });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.y = 1.65;
+    group.add(head);
+
+    const eyeGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+    const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.05, 1.68, 0.12);
+    group.add(leftEye);
+
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.05, 1.68, 0.12);
+    group.add(rightEye);
+
+    const antennaGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.15);
+    const antennaMaterial = new THREE.MeshStandardMaterial({ color: 0xff6b9d });
+    const antenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
+    antenna.position.y = 1.8;
+    group.add(antenna);
+
+    const antennaBallGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+    const antennaBallMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xff6b9d,
+        emissive: 0xff6b9d,
+        emissiveIntensity: 0.5
+    });
+    const antennaBall = new THREE.Mesh(antennaBallGeometry, antennaBallMaterial);
+    antennaBall.position.y = 1.88;
+    group.add(antennaBall);
+
+    const armGeometry = new THREE.BoxGeometry(0.1, 0.4, 0.1);
+    const armMaterial = new THREE.MeshStandardMaterial({ color: 0x667eea });
+    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+    leftArm.position.set(-0.25, 1.2, 0);
+    group.add(leftArm);
+
+    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+    rightArm.position.set(0.25, 1.2, 0);
+    group.add(rightArm);
+
+    group.userData.animate = (time) => {
+        group.rotation.y = Math.sin(time * 0.5) * 0.2;
+        if (antennaBall) {
+            antennaBall.material.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.3;
+        }
+    };
+
+    scene.add(group);
+    currentVRM = { scene: group, update: () => {} };
+
+    console.log('✅ デフォルトモデル読み込み完了');
+}
+
+async function loadVRMFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const arrayBuffer = e.target.result;
+        await loadVRM(arrayBuffer);
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// VRM読み込み（修正版）
+async function loadVRM(arrayBuffer) {
+    try {
+        console.log('🎮 VRM読み込み開始');
+
+        if (currentVRM && currentVRM.scene) {
+            scene.remove(currentVRM.scene);
+            currentVRM = null;
+        }
+
+        if (!window.GLTFLoader) {
+            throw new Error('GLTFLoaderが読み込まれていません。ページを再読み込みしてください。');
+        }
+
+        if (!window.VRMLoaderPlugin) {
+            throw new Error('VRMLoaderPluginが読み込まれていません。ページを再読み込みしてください。');
+        }
+
+        const loader = new window.GLTFLoader();
+        loader.register((parser) => {
+            return new window.VRMLoaderPlugin(parser);
+        });
+
+        console.log('🎮 VRMファイルを解析中...');
+
+        loader.parse(
+            arrayBuffer, 
+            '', 
+            (gltf) => {
+                console.log('🎮 GLTF解析完了', gltf);
+
+                const vrm = gltf.userData.vrm;
+                
+                if (!vrm) {
+                    console.error('VRMデータが見つかりません', gltf);
+                    alert('⚠️ このファイルは有効なVRMファイルではありません。');
+                    return;
+                }
+
+                console.log('🎮 VRMデータ取得成功', vrm);
+
+                currentVRM = vrm;
+                scene.add(vrm.scene);
+                
+                const box = new THREE.Box3().setFromObject(vrm.scene);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                const maxSize = Math.max(size.x, size.y, size.z);
+                const distance = maxSize * 2;
+                
+                camera.position.set(center.x, center.y + size.y * 0.3, center.z + distance);
+                camera.lookAt(center);
+                
+                isVRMLoaded = true;
+                console.log('✅ VRMモデル読み込み成功');
+                
+                alert('✅ VRMモデルを読み込みました！');
+            }, 
+            (error) => {
+                console.error('❌ VRM解析エラー:', error);
+                alert('⚠️ VRMファイルの解析に失敗しました。\n\nエラー: ' + error.message);
+            }
+        );
+
+    } catch (error) {
+        console.error('❌ VRM読み込みエラー:', error);
+        alert('⚠️ VRMファイルの読み込みに失敗しました。\n\nエラー: ' + error.message + '\n\nVRoid Studio 1.0以降で作成したVRMファイルを使用してください。');
+    }
+}
+
+// アニメーションループ（修正版）
+function animate() {
+    requestAnimationFrame(animate);
+
+    const deltaTime = clock.getDelta();
+    const elapsedTime = clock.getElapsedTime();
+
+    if (currentVRM) {
+        if (currentVRM.update) {
+            currentVRM.update(deltaTime);
+        }
+        
+        if (currentVRM.scene && currentVRM.scene.userData.animate) {
+            currentVRM.scene.userData.animate(elapsedTime);
+        }
+    }
+
+    renderer.render(scene, camera);
+}
+
+// 🎤 音声認識の初期化
+function initSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById('user-input').value = transcript;
+            sendMessage();
+            stopVoiceInput();
+        };
+
+        recognition.onerror = (event) => {
+            console.error('音声認識エラー:', event.error);
+            stopVoiceInput();
+            alert('⚠️ 音声認識エラー: ' + event.error);
+        };
+
+        recognition.onend = () => {
+            stopVoiceInput();
+        };
+
+        console.log('✅ 音声認識初期化完了');
+    }
+}
+
+function startVoiceInput() {
+    if (!recognition) {
+        alert('⚠️ このブラウザは音声認識に対応していません');
+        return;
+    }
+
+    if (isRecording) {
+        stopVoiceInput();
+        return;
+    }
+
+    isRecording = true;
+    document.getElementById('voice-btn').style.display = 'none';
+    document.getElementById('stop-voice-btn').style.display = 'block';
+    document.getElementById('user-input').placeholder = '🎤 話してください...';
+
+    recognition.start();
+    console.log('🎤 音声入力開始');
+}
+
+function stopVoiceInput() {
+    if (recognition && isRecording) {
+        recognition.stop();
+    }
+    isRecording = false;
+    document.getElementById('voice-btn').style.display = 'block';
+    document.getElementById('stop-voice-btn').style.display = 'none';
+    document.getElementById('user-input').placeholder = 'メッセージを入力...';
+    console.log('⏹️ 音声入力停止');
+}
+
+function changeCharacter(event) {
+    const character = event.target.value;
+    const characterName = document.getElementById('character-name');
+
+    switch(character) {
+        case 'nike':
+            characterName.textContent = 'ニケちゃん';
+            document.getElementById('voicevox-character').value = '3';
+            break;
+        case 'friendly':
+            characterName.textContent = 'フレンドリー';
+            document.getElementById('voicevox-character').value = '1';
+            break;
+        case 'professional':
+            characterName.textContent = 'プロフェッショナル';
+            document.getElementById('voicevox-character').value = '8';
+            break;
+    }
+}
+
+// 💬 ウェルカムメッセージ
+function displayWelcomeMessage() {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    chatMessages.innerHTML = `
+        <div class="message ai-message">
+            <p><strong>👋 こんにちは！私はニケちゃんです！</strong></p>
+            <p>質問に<strong>図やイラスト、グラフ付き</strong>で答えます！📊📈🎨</p>
+            
+            <div class="welcome-examples">
+                <p><strong>💡 試してみてください：</strong></p>
+                <ul>
+                    <li>📐 「100-30を図で説明して」</li>
+                    <li>📊 「営業プロセスをフローチャートで」</li>
+                    <li>📸 <strong>「画像を追加して、この写真について教えて」</strong></li>
+                    <li>🖼️ <strong>「この図の説明をして」</strong></li>
+                    <li>📝 <strong>「この文章を読み取って要約して」</strong></li>
+                </ul>
+            </div>
+            
+            <div class="welcome-features">
+                <p><strong>🎮 主な機能：</strong></p>
+                <ul>
+                    <li>📷 画像をアップロードして質問できます</li>
+                    <li>📂 ドラッグ&ドロップで複数画像追加</li>
+                    <li>🎤 音声入力で話しかけられます</li>
+                    <li>🔊 VOICEVOX音声出力</li>
+                    <li>📊 フローチャート・グラフ自動生成</li>
+                    <li>🎮 VRMモデル読み込み（オプション）</li>
+                </ul>
+            </div>
+            
+            <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
+                💡 右上の「⚙️ 設定」からAPIキーを設定してください
+            </p>
+        </div>
+    `;
+}
+
+// 📤 メッセージ送信
+async function sendMessage() {
+    const userInput = document.getElementById('user-input');
+    const message = userInput.value.trim();
+    
+    if (!message && uploadedImages.length === 0) {
+        alert('⚠️ メッセージまたは画像を入力してください');
+        return;
+    }
+    
+    if (!OPENAI_API_KEY) {
+        alert('⚠️ OpenAI APIキーを設定してください！');
+        openSettings();
+        return;
+    }
+
+    displayUserMessage(message, uploadedImages);
+    userInput.value = '';
+    
+    await getAIResponse(message, uploadedImages);
+    clearAllImages();
+}
+
+function displayUserMessage(text, images) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user-message';
+    
+    if (text) {
+        const textPara = document.createElement('p');
+        textPara.textContent = text;
+        messageDiv.appendChild(textPara);
+    }
+    
+    if (images && images.length > 0) {
+        const imageGrid = document.createElement('div');
+        imageGrid.className = 'message-images';
+        
+        images.forEach(img => {
+            const imgElement = document.createElement('img');
+            imgElement.src = img.base64;
+            imgElement.alt = img.name;
+            imgElement.className = 'message-image';
+            imageGrid.appendChild(imgElement);
+        });
+        
+        messageDiv.appendChild(imageGrid);
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function displayMessage(text, type) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+    
+    const textPara = document.createElement('p');
+    textPara.textContent = text;
+    messageDiv.appendChild(textPara);
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// 🤖 AI応答を取得（画像対応）
+async function getAIResponse(userMessage, images = []) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+    
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'message ai-message loading';
+    loadingDiv.innerHTML = '<p>🤔 考え中...</p>';
+    chatMessages.appendChild(loadingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+        const systemPrompt = `あなたは優秀な家庭教師であり営業コンサルタントの「ニケちゃん」です。
+複雑な内容を分かりやすく説明し、視覚的な図解を含めて答えてください。
+
+【画像が送信された場合】
+- 画像の内容を詳しく説明
+- 図表やグラフがあれば解説
+- 文字が含まれていれば読み取って説明
+
+【図解の使い方】
+- フローチャート: \`\`\`mermaid で囲む
+- グラフ: \`\`\`chart で囲む
+
+【回答のルール】
+- 親しみやすく分かりやすい説明
+- 絵文字を適度に使用
+- 必要に応じて図解を含める`;
+
+        const messageContent = [];
+        
+        if (userMessage) {
+            messageContent.push({
+                type: 'text',
+                text: userMessage
+            });
+        }
+        
+        if (images && images.length > 0) {
+            images.forEach(img => {
+                messageContent.push({
+                    type: 'image_url',
+                    image_url: {
+                        url: img.base64
+                    }
+                });
+            });
+        }
+
+        conversationHistory.push({
+            role: 'user',
+            content: messageContent
+        });
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    ...conversationHistory
+                ],
+                max_tokens: 2000
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`APIエラー: ${errorData.error?.message || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        const aiMessage = data.choices[0].message.content;
+
+        conversationHistory.push({
+            role: 'assistant',
+            content: aiMessage
+        });
+
+        chatMessages.removeChild(loadingDiv);
+
+        await displayAIMessageWithVisuals(aiMessage);
+        await speakText(aiMessage);
+
+        if (PEXELS_API_KEY && userMessage) {
+            await fetchRelatedMedia(userMessage);
+        }
+
+    } catch (error) {
+        console.error('❌ エラー:', error);
+        if (loadingDiv && loadingDiv.parentNode) {
+            chatMessages.removeChild(loadingDiv);
+        }
+        displayMessage(`⚠️ エラーが発生しました: ${error.message}`, 'ai');
+    }
+}
+
+// 🎨 AI応答を図解付きで表示
+async function displayAIMessageWithVisuals(content) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ai-message';
+
+    let processedContent = content;
+
+    const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+    let mermaidIndex = 0;
+
+    processedContent = processedContent.replace(mermaidRegex, (match, diagram) => {
+        const diagramId = `mermaid-${Date.now()}-${mermaidIndex++}`;
+        return `<div class="mermaid-diagram" id="${diagramId}">${diagram.trim()}</div>`;
+    });
+
+    const chartRegex = /```chart\n([\s\S]*?)```/g;
+    let chartIndex = 0;
+    const chartData = [];
+
+    processedContent = processedContent.replace(chartRegex, (match, data) => {
+        const chartId = `chart-${Date.now()}-${chartIndex++}`;
+        chartData.push({ id: chartId, data: data });
+        return `<div class="chart-container"><canvas id="${chartId}" class="chart-canvas"></canvas></div>`;
+    });
+
+    processedContent = processedContent
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+    messageDiv.innerHTML = processedContent;
+    chatMessages.appendChild(messageDiv);
+
+    if (processedContent.includes('mermaid-diagram')) {
+        try {
+            await mermaid.run({
+                nodes: messageDiv.querySelectorAll('.mermaid-diagram')
+            });
+        } catch (error) {
+            console.error('Mermaidエラー:', error);
+        }
+    }
+
+    chartData.forEach(item => {
+        renderChart(item.id, item.data);
+    });
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// 📈 Chart.js描画
+function renderChart(canvasId, chartDataString) {
+    setTimeout(() => {
+        try {
+            const lines = chartDataString.trim().split('\n');
+            let type = 'bar';
+            let labels = [];
+            let data = [];
+            let title = 'グラフ';
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                if (trimmedLine.startsWith('type:')) {
+                    type = trimmedLine.split(':')[1].trim();
+                } else if (trimmedLine.startsWith('labels:')) {
+                    labels = JSON.parse(trimmedLine.substring(trimmedLine.indexOf('[')));
+                } else if (trimmedLine.startsWith('data:')) {
+                    data = JSON.parse(trimmedLine.substring(trimmedLine.indexOf('[')));
+                } else if (trimmedLine.startsWith('title:')) {
+                    title = trimmedLine.split('title:')[1].trim();
+                }
+            });
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            
+            const colors = [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ];
+
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderColor: colors.slice(0, data.length).map(c => c.replace('0.8', '1')),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: type !== 'pie' && type !== 'doughnut' ? {
+                        y: { beginAtZero: true }
+                    } : {}
+                }
+            });
+        } catch (error) {
+            console.error('チャート描画エラー:', error);
+        }
+    }, 200);
+}
+
+// 🔊 音声出力
+async function speakText(text) {
+    const voiceMode = document.getElementById('voice-select').value;
+    if (voiceMode === 'off') return;
+
+    const cleanText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, '');
+
+    if (voiceMode === 'voicevox') {
+        await speakWithVOICEVOX(cleanText);
+    } else if (voiceMode === 'browser') {
+        speakWithBrowser(cleanText);
+    }
+}
+
+async function speakWithVOICEVOX(text) {
+    try {
+        const speaker = document.getElementById('voicevox-character').value;
+        
+        const queryResponse = await fetch(`${VOICEVOX_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`, {
+            method: 'POST'
+        });
+        
+        if (!queryResponse.ok) {
+            throw new Error('VOICEVOXが起動していません');
+        }
+        
+        const audioQuery = await queryResponse.json();
+        
+        const synthesisResponse = await fetch(`${VOICEVOX_URL}/synthesis?speaker=${speaker}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(audioQuery)
+        });
+        
+        const audioBlob = await synthesisResponse.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        if (currentAudio) {
+            currentAudio.pause();
+        }
+        
+        currentAudio = new Audio(audioUrl);
+        currentAudio.play();
+        
+        console.log('🔊 VOICEVOX音声再生');
+    } catch (error) {
+        console.error('VOICEVOX エラー:', error);
+        speakWithBrowser(text);
+    }
+}
+
+function speakWithBrowser(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.2;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+async function fetchRelatedMedia(query) {
+    if (!PEXELS_API_KEY) return;
+
+    try {
+        const keywords = query.split(/[、。\s]+/).filter(w => w.length > 1);
+        const searchQuery = keywords[0] || query;
+
+        const response = await fetch(
+            `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&per_page=4&locale=ja-JP`,
+            { headers: { 'Authorization': PEXELS_API_KEY } }
+        );
+
+        const data = await response.json();
+        displayMediaResults(data.photos || []);
+    } catch (error) {
+        console.error('画像取得エラー:', error);
+    }
+}
+
+function displayMediaResults(photos) {
+    const mediaContainer = document.getElementById('media-grid');
+    if (!mediaContainer) return;
+
+    mediaContainer.innerHTML = '';
+
+    if (photos.length === 0) {
+        mediaContainer.innerHTML = '<p style="text-align: center; color: #888;">関連画像が見つかりませんでした</p>';
+        return;
+    }
+
+    photos.forEach(photo => {
+        const mediaItem = document.createElement('div');
+        mediaItem.className = 'media-item';
+        mediaItem.innerHTML = `
+            <img src="${photo.src.medium}" alt="${photo.alt || '画像'}" loading="lazy">
+            <p class="media-caption">${photo.alt || '関連画像'}</p>
+        `;
+        mediaContainer.appendChild(mediaItem);
+    });
+}
+
+function openSettings() {
+    const existingModal = document.getElementById('settings-modal');
+    if (existingModal) existingModal.remove();
+
+    const currentOpenAI = localStorage.getItem('openai_api_key') || '';
+    const currentPexels = localStorage.getItem('pexels_api_key') || '';
+    const currentVOICEVOX = localStorage.getItem('voicevox_url') || 'http://localhost:50021';
+
+    const settingsHTML = `
+        <div class="settings-modal" id="settings-modal">
+            <div class="settings-content">
+                <h2>⚙️ API設定</h2>
+                
+                <div class="settings-group">
+                    <label>🤖 ChatGPT APIキー：</label>
+                    <input type="password" id="openai-key" value="${currentOpenAI}" placeholder="sk-...">
+                    <small>画像読み取りにはGPT-4o APIキーが必要です</small>
+                </div>
+                
+                <div class="settings-group">
+                    <label>📸 Pexels APIキー（任意）：</label>
+                    <input type="text" id="pexels-key" value="${currentPexels}" placeholder="Pexels API Key">
+                </div>
+                
+                <div class="settings-group">
+                    <label>🔊 VOICEVOX URL（任意）：</label>
+                    <input type="text" id="voicevox-url" value="${currentVOICEVOX}" placeholder="http://localhost:50021">
+                </div>
+                
+                <div class="settings-buttons">
+                    <button id="save-settings" class="btn-primary">💾 保存</button>
+                    <button id="close-settings" class="btn-secondary">❌ 閉じる</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', settingsHTML);
+
+    document.getElementById('save-settings').addEventListener('click', () => {
+        const openaiKey = document.getElementById('openai-key').value.trim();
+        const pexelsKey = document.getElementById('pexels-key').value.trim();
+        const voicevoxUrl = document.getElementById('voicevox-url').value.trim();
+
+        if (!openaiKey) {
+            alert('⚠️ ChatGPT APIキーは必須です！');
+            return;
+        }
+
+        localStorage.setItem('openai_api_key', openaiKey);
+        localStorage.setItem('pexels_api_key', pexelsKey);
+        localStorage.setItem('voicevox_url', voicevoxUrl);
+
+        OPENAI_API_KEY = openaiKey;
+        PEXELS_API_KEY = pexelsKey;
+        VOICEVOX_URL = voicevoxUrl;
+
+        alert('✅ 設定を保存しました！');
+        document.getElementById('settings-modal').remove();
+    });
+
+    document.getElementById('close-settings').addEventListener('click', () => {
+        document.getElementById('settings-modal').remove();
+    });
+}
+
+console.log('✅ script.js 読み込み完了');
