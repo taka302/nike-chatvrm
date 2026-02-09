@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nike ChatVRM Enhanced</title>
+    <title>Nike ChatVRM Enhanced - VRM対応版</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- 📊 Mermaid.js - フローチャート、図表 -->
@@ -18,25 +18,64 @@
     
     <!-- ✨ Marked.js - Markdown解析 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- 🎮 Three.js - 3D表示 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+    
+    <!-- 🧍 VRM Loader - VRoidモデル読み込み -->
+    <script type="module">
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
+        import { VRMLoaderPlugin } from 'https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js';
+        window.GLTFLoader = GLTFLoader;
+        window.VRMLoaderPlugin = VRMLoaderPlugin;
+    </script>
 </head>
 <body>
     <div class="container">
         <!-- 左側：キャラクターパネル -->
         <div class="character-panel">
             <div class="character-display">
-                <img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400" 
-                     alt="キャラクター" 
-                     class="character-image"
-                     id="character-image">
-                <div class="character-name" id="character-name">かわいこちゃん</div>
+                <!-- 🎮 3D VRMキャラクター表示エリア -->
+                <canvas id="vrm-canvas" class="vrm-canvas"></canvas>
+                
+                <!-- キャラクター名 -->
+                <div class="character-name" id="character-name">ニケちゃん</div>
             </div>
             
+            <!-- キャラクター選択 -->
             <div class="character-selector">
-                <label>キャラクター選択：</label>
+                <label>🎭 キャラクター選択：</label>
                 <select id="character-select">
-                    <option value="かわいい">かわいい</option>
-                    <option value="フレンドリー">フレンドリー</option>
-                    <option value="プロフェッショナル">プロフェッショナル</option>
+                    <option value="nike">ニケちゃん</option>
+                    <option value="friendly">フレンドリー</option>
+                    <option value="professional">プロフェッショナル</option>
+                </select>
+            </div>
+            
+            <!-- 🎮 VRMモデル読み込み -->
+            <div class="vrm-upload">
+                <label class="vrm-upload-btn">
+                    📂 VRMファイルを読み込む
+                    <input type="file" id="vrm-file-input" accept=".vrm" style="display: none;">
+                </label>
+            </div>
+            
+            <!-- 🎤 音声設定 -->
+            <div class="voice-settings">
+                <label>🔊 音声出力：</label>
+                <select id="voice-select">
+                    <option value="voicevox">VOICEVOX（高品質）</option>
+                    <option value="browser">ブラウザ標準</option>
+                    <option value="off">オフ</option>
+                </select>
+                
+                <label style="margin-top: 10px;">🎭 VOICEVOXキャラ：</label>
+                <select id="voicevox-character">
+                    <option value="3">ずんだもん（ノーマル）</option>
+                    <option value="1">四国めたん（ノーマル）</option>
+                    <option value="8">春日部つむぎ（ノーマル）</option>
+                    <option value="2">四国めたん（あまあま��</option>
+                    <option value="0">四国めたん（ノーマル）</option>
                 </select>
             </div>
         </div>
@@ -53,6 +92,7 @@
                 <div class="button-group">
                     <button id="send-btn" class="send-btn">📤 送信</button>
                     <button id="voice-btn" class="voice-btn">🎤 音声入力</button>
+                    <button id="stop-voice-btn" class="stop-voice-btn" style="display:none;">⏹️ 停止</button>
                 </div>
             </div>
         </div>
