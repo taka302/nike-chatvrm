@@ -239,7 +239,10 @@ function initVRMViewer() {
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     
-    if (renderer.outputEncoding !== undefined) {
+    // THREE.js r150+対応（修正版）
+    if (renderer.outputColorSpace !== undefined) {
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+    } else if (renderer.outputEncoding !== undefined) {
         renderer.outputEncoding = THREE.sRGBEncoding;
     }
 
@@ -744,7 +747,7 @@ async function getAIResponse(userMessage, images = []) {
     }
 }
 
-// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応）
+// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応 + HTMLタグ混入防止）
 async function displayAIMessageWithVisuals(content) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
@@ -754,43 +757,65 @@ async function displayAIMessageWithVisuals(content) {
 
     let processedContent = content;
 
-    // Mermaid図の処理（修正版 - <pre class="mermaid">を使用）
-    const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+    // 1️⃣ まずMermaid図を抽出・保護
+    const mermaidBlocks = [];
     let mermaidIndex = 0;
+    const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
 
     processedContent = processedContent.replace(mermaidRegex, (match, diagram) => {
-        const diagramId = `mermaid-${Date.now()}-${mermaidIndex++}`;
-        return `<pre class="mermaid" id="${diagramId}">${diagram.trim()}</pre>`;
+        const placeholder = `__MERMAID_${mermaidIndex}__`;
+        mermaidBlocks.push({
+            id: `mermaid-${Date.now()}-${mermaidIndex}`,
+            content: diagram.trim()
+        });
+        mermaidIndex++;
+        return placeholder;
     });
 
-    const chartRegex = /```chart\n([\s\S]*?)```/g;
+    // 2️⃣ チャート図を抽出・保護
+    const chartBlocks = [];
     let chartIndex = 0;
-    const chartData = [];
+    const chartRegex = /```chart\n([\s\S]*?)```/g;
 
     processedContent = processedContent.replace(chartRegex, (match, data) => {
-        const chartId = `chart-${Date.now()}-${chartIndex++}`;
-        chartData.push({ id: chartId, data: data });
-        return `<div class="chart-container"><canvas id="${chartId}" class="chart-canvas"></canvas></div>`;
+        const placeholder = `__CHART_${chartIndex}__`;
+        chartBlocks.push({
+            id: `chart-${Date.now()}-${chartIndex}`,
+            data: data
+        });
+        chartIndex++;
+        return placeholder;
     });
 
+    // 3️⃣ 通常のテキストをHTML化（Markdown処理）
     processedContent = processedContent
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
 
+    // 4️⃣ Mermaidブロックを戻す（HTMLタグが混入しない）
+    mermaidBlocks.forEach((block, index) => {
+        const mermaidHtml = `<pre class="mermaid" id="${block.id}">${block.content}</pre>`;
+        processedContent = processedContent.replace(`__MERMAID_${index}__`, mermaidHtml);
+    });
+
+    // 5️⃣ チャートブロックを戻す
+    chartBlocks.forEach((block, index) => {
+        const chartHtml = `<div class="chart-container"><canvas id="${block.id}" class="chart-canvas"></canvas></div>`;
+        processedContent = processedContent.replace(`__CHART_${index}__`, chartHtml);
+    });
+
     messageDiv.innerHTML = processedContent;
     chatMessages.appendChild(messageDiv);
 
-    // Mermaid描画（修正版 - Mermaid v10の新しいAPI）
-    if (mermaidIndex > 0) {
+    // 6️⃣ Mermaid描画（クリーンなコード）
+    if (mermaidBlocks.length > 0) {
         try {
-            // Mermaid v10の新しいAPI
             await mermaid.run({
                 querySelector: '.mermaid'
             });
             console.log('✅ Mermaid描画成功');
         } catch (error) {
             console.error('❌ Mermaidエラー:', error);
-            // エラー時は元のテキストを表示
             messageDiv.querySelectorAll('.mermaid').forEach(el => {
                 el.innerHTML = `<div style="color: red; padding: 10px; background: #fee;">
                     ⚠️ 図解エラー: ${error.message}
@@ -799,8 +824,9 @@ async function displayAIMessageWithVisuals(content) {
         }
     }
 
-    chartData.forEach(item => {
-        renderChart(item.id, item.data);
+    // 7️⃣ チャート描画
+    chartBlocks.forEach(block => {
+        renderChart(block.id, block.data);
     });
 
     chatMessages.scrollTop = chatMessages.scrollHeight;
