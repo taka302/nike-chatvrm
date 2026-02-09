@@ -361,22 +361,22 @@ async function loadVRMFile(event) {
     reader.readAsArrayBuffer(file);
 }
 
-// VRM読み込み（修正版）
+// VRM読み込み（修正版 - ローダー読み込み待機）
 async function loadVRM(arrayBuffer) {
+    // VRMローダーの読み込みを待機
+    if (!window.GLTFLoader || !window.VRMLoaderPlugin) {
+        console.log('⏳ VRMローダー読み込み待機中...');
+        await new Promise((resolve) => {
+            window.addEventListener('vrm-loaders-ready', resolve, { once: true });
+        });
+    }
+
     try {
         console.log('🎮 VRM読み込み開始');
 
         if (currentVRM && currentVRM.scene) {
             scene.remove(currentVRM.scene);
             currentVRM = null;
-        }
-
-        if (!window.GLTFLoader) {
-            throw new Error('GLTFLoaderが読み込まれていません。ページを再読み込みしてください。');
-        }
-
-        if (!window.VRMLoaderPlugin) {
-            throw new Error('VRMLoaderPluginが読み込まれていません。ページを再読み込みしてください。');
         }
 
         const loader = new window.GLTFLoader();
@@ -744,7 +744,7 @@ async function getAIResponse(userMessage, images = []) {
     }
 }
 
-// 🎨 AI応答を図解付きで表示
+// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応）
 async function displayAIMessageWithVisuals(content) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
@@ -754,12 +754,13 @@ async function displayAIMessageWithVisuals(content) {
 
     let processedContent = content;
 
+    // Mermaid図の処理（修正版 - <pre class="mermaid">を使用）
     const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
     let mermaidIndex = 0;
 
     processedContent = processedContent.replace(mermaidRegex, (match, diagram) => {
         const diagramId = `mermaid-${Date.now()}-${mermaidIndex++}`;
-        return `<div class="mermaid-diagram" id="${diagramId}">${diagram.trim()}</div>`;
+        return `<pre class="mermaid" id="${diagramId}">${diagram.trim()}</pre>`;
     });
 
     const chartRegex = /```chart\n([\s\S]*?)```/g;
@@ -779,13 +780,22 @@ async function displayAIMessageWithVisuals(content) {
     messageDiv.innerHTML = processedContent;
     chatMessages.appendChild(messageDiv);
 
-    if (processedContent.includes('mermaid-diagram')) {
+    // Mermaid描画（修正版 - Mermaid v10の新しいAPI）
+    if (mermaidIndex > 0) {
         try {
+            // Mermaid v10の新しいAPI
             await mermaid.run({
-                nodes: messageDiv.querySelectorAll('.mermaid-diagram')
+                querySelector: '.mermaid'
             });
+            console.log('✅ Mermaid描画成功');
         } catch (error) {
-            console.error('Mermaidエラー:', error);
+            console.error('❌ Mermaidエラー:', error);
+            // エラー時は元のテキストを表示
+            messageDiv.querySelectorAll('.mermaid').forEach(el => {
+                el.innerHTML = `<div style="color: red; padding: 10px; background: #fee;">
+                    ⚠️ 図解エラー: ${error.message}
+                </div>`;
+            });
         }
     }
 
