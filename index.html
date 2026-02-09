@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nike ChatVRM Enhanced</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 左側：キャラクター表示エリア -->
+        <div class="character-panel">
+            <div id="character-display">
+                <img id="character-image" src="" alt="キャラクター">
+                <div id="character-name">キャラクター名</div>
+            </div>
+            
+            <!-- キャラクター選択 -->
+            <div class="character-selector">
+                <label>キャラクター選択：</label>
+                <select id="character-select">
+                    <option value="friendly">フレンドリー</option>
+                    <option value="professional">プロフェッショナル</option>
+                    <option value="cute">かわいい</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 中央：チャットエリア -->
+        <div class="chat-panel">
+            <div id="chat-messages"></div>
+            
+            <div class="input-area">
+                <textarea id="user-input" placeholder="メッセージを入力..."></textarea>
+                <div class="button-group">
+                    <button id="send-btn">送信</button>
+                    <button id="voice-input-btn">🎤 音声入力</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：画像・動画表示エリア -->
+        <div class="media-panel">
+            <h3>📸 関連メディア</h3>
+            <div id="media-display"></div>
+        </div>
+    </div>
+
+    <!-- 設定パネル -->
+    <div class="settings-panel">
+        <button id="settings-btn">⚙️ 設定</button>
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>API設定</h2>
+                <label>ChatGPT APIキー：</label>
+                <input type="password" id="openai-key" placeholder="sk-...">
+                <br><br>
+                <label>Pexels APIキー：</label>
+                <input type="password" id="pexels-key" placeholder="Pexels API Key">
+                <br><br>
+                <button id="save-settings">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
