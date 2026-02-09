@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nike ChatVRM Enhanced - VRM対応版</title>
+    <title>Nike ChatVRM Enhanced - 完全版</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- 📊 Mermaid.js - フローチャート、図表 -->
@@ -74,7 +74,7 @@
                     <option value="3">ずんだもん（ノーマル）</option>
                     <option value="1">四国めたん（ノーマル）</option>
                     <option value="8">春日部つむぎ（ノーマル）</option>
-                    <option value="2">四国めたん（あまあま��</option>
+                    <option value="2">四国めたん（あまあま）</option>
                     <option value="0">四国めたん（ノーマル）</option>
                 </select>
             </div>
@@ -86,14 +86,35 @@
                 <!-- メッセージがここに表示されます -->
             </div>
 
+            <!-- 📸 画像プレビューエリア -->
+            <div class="image-preview-area" id="image-preview-area" style="display: none;">
+                <div class="image-preview-header">
+                    <span>📸 添付画像</span>
+                    <button class="clear-images-btn" id="clear-images-btn">🗑️ すべて削除</button>
+                </div>
+                <div class="image-preview-grid" id="image-preview-grid">
+                    <!-- プレビュー画像がここに表示されます -->
+                </div>
+            </div>
+
             <!-- 入力エリア -->
             <div class="input-area">
-                <textarea id="user-input" placeholder="メッセージを入力..."></textarea>
+                <!-- 📸 画像ドロップゾーン -->
+                <div class="drop-zone" id="drop-zone">
+                    <p>📸 画像をドラッグ&ドロップ、またはクリックして選択</p>
+                </div>
+                
+                <textarea id="user-input" placeholder="メッセージを入力...（画像を追加する場合は上の枠をクリック）"></textarea>
+                
                 <div class="button-group">
                     <button id="send-btn" class="send-btn">📤 送信</button>
+                    <button id="image-btn" class="image-btn">📷 画像追加</button>
                     <button id="voice-btn" class="voice-btn">🎤 音声入力</button>
                     <button id="stop-voice-btn" class="stop-voice-btn" style="display:none;">⏹️ 停止</button>
                 </div>
+                
+                <!-- 隠しファイル入力 -->
+                <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
             </div>
         </div>
 
