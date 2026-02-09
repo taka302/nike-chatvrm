@@ -1,0 +1,247 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* 左パネル：キャラクター */
+.character-panel {
+    flex: 1;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#character-display {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#character-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #667eea;
+    margin-bottom: 15px;
+}
+
+#character-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.character-selector {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.character-selector label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #555;
+}
+
+.character-selector select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* 中央パネル：チャット */
+.chat-panel {
+    flex: 2;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.user-message {
+    background: #667eea;
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.ai-message {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#user-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 16px;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 12px 24px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #5568d3;
+}
+
+#voice-input-btn {
+    background: #764ba2;
+}
+
+#voice-input-btn:hover {
+    background: #64408a;
+}
+
+/* 右パネル：メディア */
+.media-panel {
+    flex: 1;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    overflow-y: auto;
+}
+
+.media-panel h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+#media-display {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.media-item img, .media-item video {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.media-caption {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+/* 設定パネル */
+.settings-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+#settings-btn {
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.9);
+    color: #667eea;
+    border: 2px solid white;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 500px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+#save-settings {
+    margin-top: 20px;
+    width: 100%;
+}
