@@ -22,12 +22,18 @@
     <!-- 🎮 Three.js - 3D表示 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
     
-    <!-- 🧍 VRM Loader - VRoidモデル読み込み -->
+    <!-- 🧍 VRM Loader - VRoidモデル読み込み（修正版） -->
     <script type="module">
         import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
         import { VRMLoaderPlugin } from 'https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js';
+        
+        // グローバルに設定
         window.GLTFLoader = GLTFLoader;
         window.VRMLoaderPlugin = VRMLoaderPlugin;
+        
+        // 読み込み完了イベントを発火
+        window.dispatchEvent(new Event('vrm-loaders-ready'));
+        console.log('✅ VRMローダー読み込み完了');
     </script>
 </head>
 <body>
@@ -133,13 +139,14 @@
     <script src="config.js"></script>
     <script src="script.js"></script>
     <script>
-        // Mermaid初期化
+        // Mermaid初期化（修正版 - 手動制御に変更）
         mermaid.initialize({ 
-            startOnLoad: true,
+            startOnLoad: false,
             theme: 'default',
             securityLevel: 'loose',
             fontFamily: 'Arial, sans-serif'
         });
+        console.log('✅ Mermaid初期化完了');
     </script>
 </body>
 </html>
