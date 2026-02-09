@@ -1,3 +1,7 @@
+/* ========================================
+   🎨 Nike ChatVRM Enhanced - スタイル
+   ======================================== */
+
 * {
     margin: 0;
     padding: 0;
@@ -12,236 +16,486 @@ body {
 }
 
 .container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 300px 1fr 350px;
+    gap: 15px;
     height: 100vh;
-    gap: 10px;
-    padding: 10px;
+    padding: 15px;
 }
 
-/* 左パネル：キャラクター */
+/* ========================================
+   👤 キャラクターパネル（左側）
+   ======================================== */
+
 .character-panel {
-    flex: 1;
     background: white;
-    border-radius: 15px;
+    border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    gap: 20px;
 }
 
-#character-display {
-    width: 100%;
+.character-display {
     text-align: center;
-    margin-bottom: 20px;
 }
 
-#character-image {
+.character-image {
     width: 200px;
     height: 200px;
     border-radius: 50%;
     object-fit: cover;
     border: 5px solid #667eea;
-    margin-bottom: 15px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-#character-name {
-    font-size: 24px;
+.character-name {
+    margin-top: 15px;
+    font-size: 1.5em;
     font-weight: bold;
     color: #333;
 }
 
 .character-selector {
-    width: 100%;
-    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .character-selector label {
-    display: block;
-    margin-bottom: 10px;
     font-weight: bold;
     color: #555;
 }
 
 .character-selector select {
-    width: 100%;
     padding: 10px;
-    border: 2px solid #667eea;
+    border: 2px solid #ddd;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: border-color 0.3s;
 }
 
-/* 中央パネル：チャット */
+.character-selector select:hover {
+    border-color: #667eea;
+}
+
+/* ========================================
+   💬 チャットパネル（中央）
+   ======================================== */
+
 .chat-panel {
-    flex: 2;
     background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
-#chat-messages {
+.chat-messages {
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 20px;
-    padding: 10px;
+    padding: 20px;
+    background: #f8f9fa;
 }
 
 .message {
     margin-bottom: 15px;
-    padding: 12px;
+    padding: 15px;
     border-radius: 12px;
-    max-width: 80%;
-    word-wrap: break-word;
+    animation: fadeIn 0.3s ease-in;
 }
 
-.user-message {
-    background: #667eea;
-    color: white;
-    margin-left: auto;
-    text-align: right;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .ai-message {
-    background: #f0f0f0;
-    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-right: 50px;
 }
 
+.user-message {
+    background: #e9ecef;
+    color: #333;
+    margin-left: 50px;
+    text-align: right;
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.welcome-examples {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.welcome-examples ul {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.welcome-examples li {
+    margin: 5px 0;
+}
+
+/* ========================================
+   📊 図解・��ラフスタイル
+   ======================================== */
+
+.mermaid-diagram {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-canvas {
+    max-width: 100%;
+    max-height: 400px;
+    margin: 0 auto;
+    display: block;
+}
+
+/* ========================================
+   ✍️ 入力エリア
+   ======================================== */
+
 .input-area {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    padding: 20px;
+    background: white;
+    border-top: 2px solid #e9ecef;
 }
 
 #user-input {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #667eea;
-    border-radius: 8px;
-    font-size: 16px;
-    resize: vertical;
     min-height: 60px;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.3s;
+}
+
+#user-input:focus {
+    outline: none;
+    border-color: #667eea;
 }
 
 .button-group {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
 }
 
-button {
-    padding: 12px 24px;
-    background: #667eea;
-    color: white;
+.send-btn,
+.voice-btn {
+    flex: 1;
+    padding: 12px;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 1em;
+    font-weight: bold;
     cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.voice-btn {
+    background: #28a745;
+    color: white;
+}
+
+.send-btn:hover,
+.voice-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.send-btn:active,
+.voice-btn:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   🖼️ メディアパネル（右側）
+   ======================================== */
+
+.media-panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.settings-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
     transition: background 0.3s;
 }
 
-button:hover {
-    background: #5568d3;
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
-#voice-input-btn {
-    background: #764ba2;
-}
-
-#voice-input-btn:hover {
-    background: #64408a;
-}
-
-/* 右パネル：メディア */
-.media-panel {
+.media-grid {
     flex: 1;
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     overflow-y: auto;
-}
-
-.media-panel h3 {
-    margin-bottom: 15px;
-    color: #333;
-}
-
-#media-display {
-    display: flex;
-    flex-direction: column;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 15px;
 }
 
-.media-item img, .media-item video {
+.media-item {
+    background: #f8f9fa;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.media-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.media-item img {
     width: 100%;
-    border-radius: 8px;
-    margin-bottom: 5px;
+    height: 200px;
+    object-fit: cover;
 }
 
 .media-caption {
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
+    padding: 10px;
+    font-size: 0.9em;
+    color: #555;
+    text-align: center;
 }
 
-/* 設定パネル */
-.settings-panel {
+/* ========================================
+   ⚙️ 設定モーダル
+   ======================================== */
+
+.settings-modal {
     position: fixed;
-    top: 20px;
-    right: 20px;
-}
-
-#settings-btn {
-    padding: 10px 20px;
-    background: rgba(255,255,255,0.9);
-    color: #667eea;
-    border: 2px solid white;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in;
 }
 
-.modal-content {
-    background-color: white;
-    margin: 15% auto;
+.settings-content {
+    background: white;
     padding: 30px;
-    border-radius: 15px;
-    width: 80%;
+    border-radius: 16px;
     max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
+.settings-content h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.settings-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.settings-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.settings-group small {
+    display: block;
+    margin-top: 5px;
+    color: #888;
+    font-size: 0.85em;
+}
+
+.settings-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
     font-weight: bold;
     cursor: pointer;
+    transition: transform 0.2s;
 }
 
-.close:hover {
-    color: #000;
+.btn-primary {
+    background: #28a745;
+    color: white;
 }
 
-.modal-content input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: 2px solid #667eea;
-    border-radius: 8px;
-    font-size: 14px;
+.btn-secondary {
+    background: #dc3545;
+    color: white;
 }
 
-#save-settings {
+.btn-primary:hover,
+.btn-secondary:hover {
+    transform: translateY(-2px);
+}
+
+.settings-help {
     margin-top: 20px;
-    width: 100%;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.9em;
+}
+
+.settings-help ul {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.settings-help li {
+    margin: 5px 0;
+}
+
+.settings-help a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.settings-help a:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   📱 レスポンシブ対応
+   ======================================== */
+
+@media (max-width: 1200px) {
+    .container {
+        grid-template-columns: 250px 1fr 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+    }
+    
+    .character-panel,
+    .media-panel {
+        display: none;
+    }
+}
+
+/* ========================================
+   🎨 スクロールバーのカスタマイズ
+   ======================================== */
+
+.chat-messages::-webkit-scrollbar,
+.media-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track,
+.media-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.media-grid::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover,
+.media-grid::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
