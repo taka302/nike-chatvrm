@@ -22,18 +22,24 @@
     <!-- 🎮 Three.js - 3D表示 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
     
-    <!-- 🧍 VRM Loader - VRoidモデル読み込み（修正版） -->
-    <script type="module">
-        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
-        import { VRMLoaderPlugin } from 'https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js';
-        
-        // グローバルに設定
-        window.GLTFLoader = GLTFLoader;
-        window.VRMLoaderPlugin = VRMLoaderPlugin;
-        
-        // 読み込み完了イベントを発火
-        window.dispatchEvent(new Event('vrm-loaders-ready'));
-        console.log('✅ VRMローダー読み込み完了');
+    <!-- 🧍 VRM Loader - VRoidモデル読み込み（修正版2 - ローカルファイル対応） -->
+    <script>
+        // Three.jsが読み込まれるのを待つ
+        window.addEventListener('load', async () => {
+            try {
+                // 動的にES Moduleをインポート
+                const { GLTFLoader } = await import('https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js');
+                const { VRMLoaderPlugin } = await import('https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js');
+                
+                window.GLTFLoader = GLTFLoader;
+                window.VRMLoaderPlugin = VRMLoaderPlugin;
+                
+                window.dispatchEvent(new Event('vrm-loaders-ready'));
+                console.log('✅ VRMローダー読み込み完了');
+            } catch (error) {
+                console.error('❌ VRMローダー読み込みエラー:', error);
+            }
+        });
     </script>
 </head>
 <body>
