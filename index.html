@@ -5,66 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nike ChatVRM Enhanced</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- 📊 Mermaid.js - フローチャート、図表 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- 📈 Chart.js - グラフ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- 🔢 MathJax - 数式 -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- ✨ Marked.js - Markdown解析 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- 左側：キャラクター表示エリア -->
+        <!-- 左側：キャラクターパネル -->
         <div class="character-panel">
-            <div id="character-display">
-                <img id="character-image" src="" alt="キャラクター">
-                <div id="character-name">キャラクター名</div>
+            <div class="character-display">
+                <img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                     alt="キャラクター" 
+                     class="character-image"
+                     id="character-image">
+                <div class="character-name" id="character-name">かわいこちゃん</div>
             </div>
             
-            <!-- キャラクター選択 -->
             <div class="character-selector">
                 <label>キャラクター選択：</label>
                 <select id="character-select">
-                    <option value="friendly">フレンドリー</option>
-                    <option value="professional">プロフェッショナル</option>
-                    <option value="cute">かわいい</option>
+                    <option value="かわいい">かわいい</option>
+                    <option value="フレンドリー">フレンドリー</option>
+                    <option value="プロフェッショナル">プロフェッショナル</option>
                 </select>
             </div>
         </div>
 
         <!-- 中央：チャットエリア -->
         <div class="chat-panel">
-            <div id="chat-messages"></div>
-            
+            <div class="chat-messages" id="chat-messages">
+                <!-- メッセージがここに表示されます -->
+            </div>
+
+            <!-- 入力エリア -->
             <div class="input-area">
                 <textarea id="user-input" placeholder="メッセージを入力..."></textarea>
                 <div class="button-group">
-                    <button id="send-btn">送信</button>
-                    <button id="voice-input-btn">🎤 音声入力</button>
+                    <button id="send-btn" class="send-btn">📤 送信</button>
+                    <button id="voice-btn" class="voice-btn">🎤 音声入力</button>
                 </div>
             </div>
         </div>
 
-        <!-- 右側：画像・動画表示エリア -->
+        <!-- 右側：関連メディア -->
         <div class="media-panel">
-            <h3>📸 関連メディア</h3>
-            <div id="media-display"></div>
-        </div>
-    </div>
-
-    <!-- 設定パネル -->
-    <div class="settings-panel">
-        <button id="settings-btn">⚙️ 設定</button>
-        <div id="settings-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>API設定</h2>
-                <label>ChatGPT APIキー：</label>
-                <input type="password" id="openai-key" placeholder="sk-...">
-                <br><br>
-                <label>Pexels APIキー：</label>
-                <input type="password" id="pexels-key" placeholder="Pexels API Key">
-                <br><br>
-                <button id="save-settings">保存</button>
+            <div class="panel-header">
+                <h3>📸 関連メディア</h3>
+                <button class="settings-btn" id="settings-btn">⚙️ 設定</button>
+            </div>
+            <div class="media-grid" id="media-grid">
+                <!-- 画像がここに表示されます -->
             </div>
         </div>
     </div>
 
     <script src="config.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Mermaid初期化
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            fontFamily: 'Arial, sans-serif'
+        });
+    </script>
 </body>
 </html>
