@@ -766,9 +766,6 @@ async function displayAIMessageWithVisuals(content) {
     // 2️⃣ Mermaid図を抽出・保護
     const mermaidBlocks = [];
     let mermaidIndex = 0;
-    // 2️⃣ Mermaid図を抽出・保護
-    const mermaidBlocks = [];
-    let mermaidIndex = 0;
     const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
 
     processedContent = processedContent.replace(mermaidRegex, (match, diagram) => {
