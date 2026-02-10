@@ -734,10 +734,6 @@ async function getAIResponse(userMessage, images = []) {
         await displayAIMessageWithVisuals(aiMessage);
         await speakText(aiMessage);
 
-        if (PEXELS_API_KEY && userMessage) {
-            await fetchRelatedMedia(userMessage);
-        }
-
     } catch (error) {
         console.error('❌ エラー:', error);
         if (loadingDiv && loadingDiv.parentNode) {
@@ -747,7 +743,27 @@ async function getAIResponse(userMessage, images = []) {
     }
 }
 
-// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応 + HTMLタグ混入防止）
+// 🎬 YouTube URLを検出して埋め込みプレイヤーに変換
+function processYouTubeLinks(content) {
+    // YouTube URLパターン
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+    
+    return content.replace(youtubeRegex, (match, videoId) => {
+        return `
+        <div class="youtube-embed">
+            <iframe 
+                width="100%" 
+                height="315" 
+                src="https://www.youtube.com/embed/${videoId}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>`;
+    });
+}
+
+// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応 + HTMLタグ混入防止 + YouTube埋め込み）
 async function displayAIMessageWithVisuals(content) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
@@ -756,6 +772,9 @@ async function displayAIMessageWithVisuals(content) {
     messageDiv.className = 'message ai-message';
 
     let processedContent = content;
+
+    // 0️⃣ YouTube URLを検出して埋め込みプレイヤーに変換
+    processedContent = processYouTubeLinks(processedContent);
 
     // 1️⃣ まずMermaid図を抽出・保護
     const mermaidBlocks = [];
@@ -966,47 +985,6 @@ function speakWithBrowser(text) {
         utterance.pitch = 1.2;
         window.speechSynthesis.speak(utterance);
     }
-}
-
-async function fetchRelatedMedia(query) {
-    if (!PEXELS_API_KEY) return;
-
-    try {
-        const keywords = query.split(/[、。\s]+/).filter(w => w.length > 1);
-        const searchQuery = keywords[0] || query;
-
-        const response = await fetch(
-            `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&per_page=4&locale=ja-JP`,
-            { headers: { 'Authorization': PEXELS_API_KEY } }
-        );
-
-        const data = await response.json();
-        displayMediaResults(data.photos || []);
-    } catch (error) {
-        console.error('画像取得エラー:', error);
-    }
-}
-
-function displayMediaResults(photos) {
-    const mediaContainer = document.getElementById('media-grid');
-    if (!mediaContainer) return;
-
-    mediaContainer.innerHTML = '';
-
-    if (photos.length === 0) {
-        mediaContainer.innerHTML = '<p style="text-align: center; color: #888;">関連画像が見つかりませんでした</p>';
-        return;
-    }
-
-    photos.forEach(photo => {
-        const mediaItem = document.createElement('div');
-        mediaItem.className = 'media-item';
-        mediaItem.innerHTML = `
-            <img src="${photo.src.medium}" alt="${photo.alt || '画像'}" loading="lazy">
-            <p class="media-caption">${photo.alt || '関連画像'}</p>
-        `;
-        mediaContainer.appendChild(mediaItem);
-    });
 }
 
 function openSettings() {
