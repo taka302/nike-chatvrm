@@ -1,3 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nike ChatVRM Enhanced - 完全版</title>
+
+    <!-- ★ デザイン用 CSS を読み込む ★ -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Mermaid.js - フローチャート、図表 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <!-- Chart.js - グラフ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- MathJax - 数式 -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Marked.js - Markdown解析 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Three.js 3D表示 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+    <!-- VRM Loader - VRoidモデル読み込み（修正版） -->
+    <script type="module">
+        // Three.jsが読み込まれるのを待つ
+        window.addEventListener('load', async () => {
+            try {
+                // 動的にES Moduleをインポート
+                const { GLTFLoader } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js');
+                const { VRMLoaderPlugin } = await import('https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.0/lib/three-vrm.module.js');
+
+                window.GLTFLoader = GLTFLoader;
+                window.VRMLoaderPlugin = VRMLoaderPlugin;
+                window.VRM = (await import('https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.0/lib/three-vrm.module.js')).VRM;
+            } catch (error) {
+                console.error('VRMローダー読み込みエラー', error);
+                const target = document.getElementById('vrm-error');
+                if (target) {
+                    target.textContent = 'VRMローダーの読み込みに失敗しました。ページを再読み込みしてください。';
+                }
+            }
+        });
+    </script>
+</head>
 <body>
   テスト：この行が見えたら index.html は反映されています
   <!-- ここから本来のレイアウト -->
@@ -86,3 +135,4 @@
 
   <script src="script.js"></script>
 </body>
+</html>
