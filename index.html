@@ -5,113 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nike ChatVRM Enhanced - 完全版</title>
     <link rel="stylesheet" href="style.css">
-    
+
     <!-- 📊 Mermaid.js - フローチャート、図表 -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    
+
     <!-- 📈 Chart.js - グラフ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
+
     <!-- 🔢 MathJax - 数式 -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <!-- ✨ Marked.js - Markdown解析 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+
     <!-- 🎮 Three.js - 3D表示 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
-    
-    <!-- 🧍 VRM Loader - VRoidモデル読み込み（修正版2 - ローカルファイル対応） -->
+
+    <!-- 🧍 VRM Loader - VRoidモデル読み込み（ローダーをwindowへ公開） -->
     <script>
-        // Three.jsが読み込まれるのを待つ
         window.addEventListener('load', async () => {
             try {
-                // 動的にES Moduleをインポート
                 const { GLTFLoader } = await import('https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js');
                 const { VRMLoaderPlugin } = await import('https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js');
-                
+
                 window.GLTFLoader = GLTFLoader;
                 window.VRMLoaderPlugin = VRMLoaderPlugin;
-                
+
                 window.dispatchEvent(new Event('vrm-loaders-ready'));
                 console.log('✅ VRMローダー読み込み完了');
             } catch (error) {
-                console.error('❌ VRMローダー読み込みエラー:', error);
+                console.error('VRMローダー読み込みに失敗しました', error);
             }
         });
     </script>
 </head>
 <body>
     <div class="container">
-        <!-- 左側：キャラクターパネル -->
-        <div class="character-panel">
-            <div class="character-display">
-                <!-- 🎮 3D VRMキャラクター表示エリア -->
-                <canvas id="vrm-canvas" class="vrm-canvas"></canvas>
-                
-                <!-- キャラクター名 -->
-                <div class="character-name" id="character-name">ニケちゃん</div>
-            </div>
-        </div>
+        <!-- =======================
+             左 25% : VRMキャンバス
+        ======================== -->
+        <aside class="vrm-pane">
+            <canvas id="vrm-canvas"></canvas>
+        </aside>
 
-        <!-- 中央：チャットエリア -->
-        <div class="chat-panel">
-            <div class="chat-messages" id="chat-messages">
-                <!-- 受信メッセージのみ表示 -->
-            </div>
-        </div>
+        <!-- =======================
+             中央 50% : 受信メッセージエリア
+        ======================== -->
+        <main class="chat-pane">
+            <header class="chat-header">
+                <h1>こんにちは！私はニケちゃんです！</h1>
+                <p>質問に図やイラスト、グラフ付きで答えます！📚📊🖼️🎨</p>
+            </header>
 
-        <!-- 右側：入力パネル -->
-        <div class="input-panel">
-            <div class="panel-header">
-                <h3>💬 入力エリア</h3>
-                <button class="settings-btn" id="settings-btn">⚙️ 設定</button>
-            </div>
-            
-            <!-- 📸 画像プレビューエリア -->
-            <div class="image-preview-area" id="image-preview-area" style="display: none;">
-                <div class="image-preview-header">
-                    <span>📸 添付画像</span>
-                    <button class="clear-images-btn" id="clear-images-btn">🗑️ すべて削除</button>
+            <section id="chat-messages" class="chat-messages">
+                <!-- JSからメッセージが追加される -->
+            </section>
+        </main>
+
+        <!-- =======================
+             右 25% : 入力 & 設定エリア
+        ======================== -->
+        <aside class="control-pane">
+            <div class="character-card">
+                <h2>ニケちゃん</h2>
+
+                <div class="form-group">
+                    <label for="character-select">🎭 キャラクター選択</label>
+                    <select id="character-select">
+                        <option value="nike">ニケちゃん</option>
+                        <!-- 他キャラは script.js の characters オブジェクトと同期 -->
+                    </select>
                 </div>
-                <div class="image-preview-grid" id="image-preview-grid">
-                    <!-- プレビュー画像がここに表示されます -->
+
+                <div class="form-group">
+                    <label for="voicevox-character">🔊 VOICEVOXキャラ</label>
+                    <select id="voicevox-character">
+                        <option value="3">ずんだもん</option>
+                        <option value="2">四国めたん</option>
+                        <option value="8">春日部つむぎ</option>
+                        <option value="67">ナースロボ_タイプT</option>
+                        <!-- 必要に応じてここに追加 -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nikke-personality">💡 NIKKEキャラ設定（性格）</label>
+                    <select id="nikke-personality">
+                        <option value="genki">元気・明るい</option>
+                        <option value="cool">クール</option>
+                        <option value="oneesan">お姉さん</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nikke-color">🎨 テーマカラー</label>
+                    <input type="color" id="nikke-color" value="#ff66cc">
+                </div>
+
+                <div class="form-group">
+                    <label for="vrm-file-input">📂 VRMファイルを読み込む</label>
+                    <input type="file" id="vrm-file-input" accept=".vrm">
                 </div>
             </div>
-            
-            <!-- 📸 画像ドロップゾーン -->
-            <div class="drop-zone" id="drop-zone">
-                <p>📸 画像をドラッグ&ドロップ</p>
+
+            <div class="input-card">
+                <div id="image-preview-area" class="image-preview-area">
+                    <!-- 画像プレビュー（Pexels削除・アップロードのみ） -->
+                </div>
+
+                <textarea
+                    id="user-input"
+                    class="message-input"
+                    placeholder="メッセージを入力してください…（画像を追加する場合は下のボタンから）"
+                ></textarea>
+
+                <div class="button-row">
+                    <button id="send-button" class="btn primary">送信</button>
+                    <button id="image-upload-button" class="btn">画像追加</button>
+                    <button id="voice-input-button" class="btn">音声入力</button>
+                </div>
+
+                <div class="button-row">
+                    <button id="settings-button" class="btn secondary">⚙️ 設定</button>
+                </div>
             </div>
-            
-            <!-- テキスト入力 -->
-            <textarea id="user-input" placeholder="メッセージを入力..."></textarea>
-            
-            <!-- ボタングループ -->
-            <div class="button-group">
-                <button id="send-btn" class="send-btn">📤 送信</button>
-                <button id="image-btn" class="image-btn">📷 画像</button>
-                <button id="voice-btn" class="voice-btn">🎤 音声</button>
-                <button id="stop-voice-btn" class="stop-voice-btn" style="display:none;">⏹️ 停止</button>
-            </div>
-            
-            <!-- 隠しファイル入力 -->
-            <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
-        </div>
+        </aside>
     </div>
 
-    <script src="config.js"></script>
+    <input type="file" id="hidden-image-input" accept="image/*" multiple style="display:none">
+
     <script src="script.js"></script>
-    <script>
-        // Mermaid初期化（修正版 - 手動制御に変更）
-        mermaid.initialize({ 
-            startOnLoad: false,
-            theme: 'default',
-            securityLevel: 'loose',
-            fontFamily: 'Arial, sans-serif'
-        });
-        console.log('✅ Mermaid初期化完了');
-    </script>
 </body>
 </html>
