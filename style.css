@@ -17,139 +17,36 @@ body {
 
 .container {
     display: grid;
-    grid-template-columns: 320px 1fr 350px;
+    grid-template-columns: 25% 50% 25%; /* 左25% 中央50% 右25% */
     gap: 15px;
     height: 100vh;
     padding: 15px;
 }
 
 /* ========================================
-   👤 キャラクターパネル（左側）
+   👤 キャラクターパネル（左側）- VRM全画面表示
    ======================================== */
 
 .character-panel {
     background: white;
     border-radius: 16px;
-    padding: 20px;
+    padding: 0; /* パディング削除 */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
-.character-display {
-    text-align: center;
-}
-
-/* 🎮 VRMキャンバス */
+/* 🎮 VRMキャンバス - 全画面表示 */
 .vrm-canvas {
     width: 100%;
-    height: 280px;
-    border-radius: 12px;
+    height: 100%;
+    border-radius: 16px;
     background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
-    border: 3px solid #667eea;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.character-name {
-    margin-top: 15px;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #333;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.character-selector {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.character-selector label {
-    font-weight: bold;
-    color: #555;
-    font-size: 0.95em;
-}
-
-.character-selector select {
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: border-color 0.3s;
-    background: white;
-}
-
-.character-selector select:hover {
-    border-color: #667eea;
-}
-
-.character-selector select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* 🎮 VRMアップロード */
-.vrm-upload {
-    margin-top: 10px;
-}
-
-.vrm-upload-btn {
-    display: block;
-    padding: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 8px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.vrm-upload-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.vrm-upload-btn:active {
-    transform: translateY(0);
-}
-
-/* 🎤 音声設定 */
-.voice-settings {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-}
-
-.voice-settings label {
-    font-weight: bold;
-    color: #555;
-    font-size: 0.9em;
-}
-
-.voice-settings select {
-    padding: 8px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.9em;
-    cursor: pointer;
-    background: white;
-}
-
-.voice-settings select:hover {
-    border-color: #667eea;
 }
 
 /* ========================================
-   💬 チャットパネル（中央）
+   💬 チャットパネル（中央）- 受信メッセージのみ
    ======================================== */
 
 .chat-panel {
@@ -159,6 +56,35 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+.panel-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.settings-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .chat-messages {
@@ -253,6 +179,20 @@ body {
     max-height: 400px;
     margin: 0 auto;
     display: block;
+}
+
+/* YouTube埋め込み */
+.youtube-embed {
+    margin: 15px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.youtube-embed iframe {
+    width: 100%;
+    height: 315px;
+    border: none;
 }
 
 /* ========================================
@@ -404,18 +344,23 @@ body {
 }
 
 /* ========================================
-   ✍️ 入力エリア
+   ✍️ 入力パネル（右側）
    ======================================== */
 
-.input-area {
-    padding: 20px;
+.input-panel {
     background: white;
-    border-top: 2px solid #e9ecef;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
 }
 
 #user-input {
     width: 100%;
-    min-height: 60px;
+    min-height: 100px;
     padding: 12px;
     border: 2px solid #ddd;
     border-radius: 8px;
@@ -502,84 +447,7 @@ body {
 }
 
 /* ========================================
-   🖼️ メディアパネル（右側）
-   ======================================== */
-
-.media-panel {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.panel-header {
-    padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-header h3 {
-    margin: 0;
-    font-size: 1.2em;
-}
-
-.settings-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.settings-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.media-grid {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-}
-
-.media-item {
-    background: #f8f9fa;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-}
-
-.media-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.media-item img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
-
-.media-caption {
-    padding: 10px;
-    font-size: 0.9em;
-    color: #555;
-    text-align: center;
-}
-
-/* ========================================
-   ⚙️ 設定モーダル
+   📱 レスポンシブ対応
    ======================================== */
 
 .settings-modal {
@@ -679,6 +547,90 @@ body {
 }
 
 /* ========================================
+   ⚙️ 設定モーダル
+   ======================================== */
+
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.settings-content {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+}
+
+.settings-content h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.settings-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.settings-section:last-of-type {
+    border-bottom: none;
+}
+
+.settings-section h3 {
+    margin-bottom: 15px;
+    color: #667eea;
+    font-size: 18px;
+}
+
+.settings-group {
+    margin-bottom: 15px;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.settings-group input,
+.settings-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.settings-group input:focus,
+.settings-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.settings-group small {
+    display: block;
+    margin-top: 5px;
+    color: #888;
+    font-size: 0.85em;
+}
+
+/* ========================================
    📱 レスポンシブ対応
    ======================================== */
 
@@ -695,7 +647,7 @@ body {
     }
     
     .character-panel,
-    .media-panel {
+    .input-panel {
         display: none;
     }
     
@@ -725,27 +677,27 @@ body {
    ======================================== */
 
 .chat-messages::-webkit-scrollbar,
-.media-grid::-webkit-scrollbar,
+.input-panel::-webkit-scrollbar,
 .character-panel::-webkit-scrollbar {
     width: 8px;
 }
 
 .chat-messages::-webkit-scrollbar-track,
-.media-grid::-webkit-scrollbar-track,
+.input-panel::-webkit-scrollbar-track,
 .character-panel::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 10px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb,
-.media-grid::-webkit-scrollbar-thumb,
+.input-panel::-webkit-scrollbar-thumb,
 .character-panel::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 10px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover,
-.media-grid::-webkit-scrollbar-thumb:hover,
+.input-panel::-webkit-scrollbar-thumb:hover,
 .character-panel::-webkit-scrollbar-thumb:hover {
     background: #555;
 }

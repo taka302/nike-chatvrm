@@ -44,60 +44,25 @@
 </head>
 <body>
     <div class="container">
-        <!-- 左側：キャラクターパネル -->
+        <!-- 左側：VRM全画面表示パネル -->
         <div class="character-panel">
-            <div class="character-display">
-                <!-- 🎮 3D VRMキャラクター表示エリア -->
-                <canvas id="vrm-canvas" class="vrm-canvas"></canvas>
-                
-                <!-- キャラクター名 -->
-                <div class="character-name" id="character-name">ニケちゃん</div>
-            </div>
-            
-            <!-- キャラクター選択 -->
-            <div class="character-selector">
-                <label>🎭 キャラクター選択：</label>
-                <select id="character-select">
-                    <option value="nike">ニケちゃん</option>
-                    <option value="friendly">フレンドリー</option>
-                    <option value="professional">プロフェッショナル</option>
-                </select>
-            </div>
-            
-            <!-- 🎮 VRMモデル読み込み -->
-            <div class="vrm-upload">
-                <label class="vrm-upload-btn">
-                    📂 VRMファイルを読み込む
-                    <input type="file" id="vrm-file-input" accept=".vrm" style="display: none;">
-                </label>
-            </div>
-            
-            <!-- 🎤 音声設定 -->
-            <div class="voice-settings">
-                <label>🔊 音声出力：</label>
-                <select id="voice-select">
-                    <option value="voicevox">VOICEVOX（高品質）</option>
-                    <option value="browser">ブラウザ標準</option>
-                    <option value="off">オフ</option>
-                </select>
-                
-                <label style="margin-top: 10px;">🎭 VOICEVOXキャラ：</label>
-                <select id="voicevox-character">
-                    <option value="3">ずんだもん（ノーマル）</option>
-                    <option value="1">四国めたん（ノーマル）</option>
-                    <option value="8">春日部つむぎ（ノーマル）</option>
-                    <option value="2">四国めたん（あまあま）</option>
-                    <option value="0">四国めたん（ノーマル）</option>
-                </select>
-            </div>
+            <!-- 🎮 3D VRMキャラクター表示エリア -->
+            <canvas id="vrm-canvas" class="vrm-canvas"></canvas>
         </div>
 
-        <!-- 中央：チャットエリア -->
+        <!-- 中央：受信メッセージパネル -->
         <div class="chat-panel">
+            <div class="panel-header">
+                <h3>💬 チャット</h3>
+                <button class="settings-btn" id="settings-btn">⚙️ 設定</button>
+            </div>
             <div class="chat-messages" id="chat-messages">
                 <!-- メッセージがここに表示されます -->
             </div>
+        </div>
 
+        <!-- 右側：入力パネル -->
+        <div class="input-panel">
             <!-- 📸 画像プレビューエリア -->
             <div class="image-preview-area" id="image-preview-area" style="display: none;">
                 <div class="image-preview-header">
@@ -109,36 +74,24 @@
                 </div>
             </div>
 
-            <!-- 入力エリア -->
-            <div class="input-area">
-                <!-- 📸 画像ドロップゾーン -->
-                <div class="drop-zone" id="drop-zone">
-                    <p>📸 画像をドラッグ&ドロップ、またはクリックして選択</p>
-                </div>
-                
-                <textarea id="user-input" placeholder="メッセージを入力...（画像を追加する場合は上の枠をクリック）"></textarea>
-                
-                <div class="button-group">
-                    <button id="send-btn" class="send-btn">📤 送信</button>
-                    <button id="image-btn" class="image-btn">📷 画像追加</button>
-                    <button id="voice-btn" class="voice-btn">🎤 音声入力</button>
-                    <button id="stop-voice-btn" class="stop-voice-btn" style="display:none;">⏹️ 停止</button>
-                </div>
-                
-                <!-- 隠しファイル入力 -->
-                <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
+            <!-- 📸 画像ドロップゾーン -->
+            <div class="drop-zone" id="drop-zone">
+                <p>📸 画像をドラッグ&ドロップ、またはクリックして選択</p>
             </div>
-        </div>
-
-        <!-- 右側：関連メディア -->
-        <div class="media-panel">
-            <div class="panel-header">
-                <h3>📸 関連メディア</h3>
-                <button class="settings-btn" id="settings-btn">⚙️ 設定</button>
+            
+            <!-- テキスト入力エリア -->
+            <textarea id="user-input" placeholder="メッセージを入力...（画像を追加する場合は上の枠をクリック）"></textarea>
+            
+            <!-- ボタングループ -->
+            <div class="button-group">
+                <button id="send-btn" class="send-btn">📤 送信</button>
+                <button id="image-btn" class="image-btn">📷 画像追加</button>
+                <button id="voice-btn" class="voice-btn">🎤 音声入力</button>
+                <button id="stop-voice-btn" class="stop-voice-btn" style="display:none;">⏹️ 停止</button>
             </div>
-            <div class="media-grid" id="media-grid">
-                <!-- 画像がここに表示されます -->
-            </div>
+            
+            <!-- 隠しファイル入力 -->
+            <input type="file" id="image-file-input" accept="image/*" multiple style="display: none;">
         </div>
     </div>
 
