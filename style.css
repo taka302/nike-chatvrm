@@ -66,7 +66,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-
 /* ========================================
    💬 チャットパネル（中央）
    ======================================== */
@@ -446,7 +445,6 @@ body {
     display: block;
 }
 
-
 /* 🎤 録音中のアニメーション */
 .voice-btn.recording {
     animation: recordingPulse 1s infinite;
@@ -589,28 +587,28 @@ body {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr auto;
     }
-    
+
     .character-panel,
     .media-panel {
         display: none;
     }
-    
+
     .image-preview-grid {
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     }
-    
+
     .image-preview-item img {
         height: 80px;
     }
-    
+
     .message-images {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }
-    
+
     .drop-zone {
         padding: 20px;
     }
-    
+
     .drop-zone p {
         font-size: 0.9em;
     }
