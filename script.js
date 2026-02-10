@@ -28,6 +28,16 @@ window.addEventListener('DOMContentLoaded', () => {
     initSpeechRecognition();
     initImageUpload();
     displayWelcomeMessage();
+
+    // ▶ VOICEVOXキャラの初期値を右ペインのセレクトに反映（あれば）
+    const storedSpeaker = localStorage.getItem('voicevox_character') || '3';
+    const uiSelect = document.getElementById('voicevox-character');
+    if (uiSelect) {
+        uiSelect.value = storedSpeaker;
+        uiSelect.addEventListener('change', () => {
+            localStorage.setItem('voicevox_character', uiSelect.value);
+        });
+    }
 });
 
 // 🔑 APIキーの読み込み
@@ -39,12 +49,12 @@ function loadAPIKeys() {
 
 // 🎯 イベントリスナーのセットアップ
 function setupEventListeners() {
-    const sendBtn = document.getElementById('send-btn');
-    const voiceBtn = document.getElementById('voice-btn');
+    const sendBtn = document.getElementById('send-btn') || document.getElementById('send-button');
+    const voiceBtn = document.getElementById('voice-btn') || document.getElementById('voice-input-button');
     const stopVoiceBtn = document.getElementById('stop-voice-btn');
-    const imageBtn = document.getElementById('image-btn');
+    const imageBtn = document.getElementById('image-btn') || document.getElementById('image-upload-button');
     const userInput = document.getElementById('user-input');
-    const settingsBtn = document.getElementById('settings-btn');
+    const settingsBtn = document.getElementById('settings-btn') || document.getElementById('settings-button');
 
     if (sendBtn) {
         sendBtn.addEventListener('click', sendMessage);
@@ -73,7 +83,17 @@ function setupEventListeners() {
 
     if (imageBtn) {
         imageBtn.addEventListener('click', () => {
-            document.getElementById('image-file-input').click();
+            const input = document.getElementById('image-file-input') || document.getElementById('hidden-image-input');
+            if (input) input.click();
+        });
+    }
+
+    const hiddenImageInput = document.getElementById('hidden-image-input');
+    if (hiddenImageInput) {
+        hiddenImageInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleImageFiles(files);
+            e.target.value = '';
         });
     }
 
@@ -83,12 +103,12 @@ function setupEventListeners() {
 // 📸 画像アップロード機能の初期化
 function initImageUpload() {
     const dropZone = document.getElementById('drop-zone');
-    const imageFileInput = document.getElementById('image-file-input');
+    const imageFileInput = document.getElementById('image-file-input') || document.getElementById('hidden-image-input');
     const clearImagesBtn = document.getElementById('clear-images-btn');
 
     if (dropZone) {
         dropZone.addEventListener('click', () => {
-            imageFileInput.click();
+            imageFileInput && imageFileInput.click();
         });
 
         dropZone.addEventListener('dragover', (e) => {
@@ -151,7 +171,8 @@ async function handleImageFiles(files) {
     }
 
     if (uploadedImages.length > 0) {
-        document.getElementById('image-preview-area').style.display = 'block';
+        const area = document.getElementById('image-preview-area');
+        if (area) area.style.display = 'block';
     }
 }
 
@@ -166,6 +187,7 @@ function fileToBase64(file) {
 
 function displayImagePreview(imageData, index) {
     const previewGrid = document.getElementById('image-preview-grid');
+    if (!previewGrid) return;
     
     const previewItem = document.createElement('div');
     previewItem.className = 'image-preview-item';
@@ -186,6 +208,8 @@ function removeImage(index) {
     uploadedImages.splice(index, 1);
     
     const previewGrid = document.getElementById('image-preview-grid');
+    if (!previewGrid) return;
+
     previewGrid.innerHTML = '';
     
     uploadedImages.forEach((img, i) => {
@@ -193,14 +217,17 @@ function removeImage(index) {
     });
     
     if (uploadedImages.length === 0) {
-        document.getElementById('image-preview-area').style.display = 'none';
+        const area = document.getElementById('image-preview-area');
+        if (area) area.style.display = 'none';
     }
 }
 
 function clearAllImages() {
     uploadedImages = [];
-    document.getElementById('image-preview-grid').innerHTML = '';
-    document.getElementById('image-preview-area').style.display = 'none';
+    const grid = document.getElementById('image-preview-grid');
+    if (grid) grid.innerHTML = '';
+    const area = document.getElementById('image-preview-area');
+    if (area) area.style.display = 'none';
 }
 
 // 🎮 VRMビューアーの初期化（修正版）
@@ -442,7 +469,6 @@ function animate() {
         }
         
         // 自動的に左右に揺れるアニメーション
-        // 周波数: 0.5 (ゆっくりとした揺れ) / 振幅: 0.1 ラジアン (約5.7度)
         if (currentVRM.scene) {
             currentVRM.scene.rotation.y = Math.sin(elapsedTime * 0.5) * 0.1;
         }
@@ -493,8 +519,12 @@ function startVoiceInput() {
     }
 
     isRecording = true;
-    document.getElementById('voice-btn').style.display = 'none';
-    document.getElementById('stop-voice-btn').style.display = 'block';
+    const voiceBtn = document.getElementById('voice-btn') || document.getElementById('voice-input-button');
+    const stopBtn = document.getElementById('stop-voice-btn');
+    if (voiceBtn && stopBtn) {
+        voiceBtn.style.display = 'none';
+        stopBtn.style.display = 'block';
+    }
     document.getElementById('user-input').placeholder = '🎤 話してください...';
 
     recognition.start();
@@ -506,8 +536,12 @@ function stopVoiceInput() {
         recognition.stop();
     }
     isRecording = false;
-    document.getElementById('voice-btn').style.display = 'block';
-    document.getElementById('stop-voice-btn').style.display = 'none';
+    const voiceBtn = document.getElementById('voice-btn') || document.getElementById('voice-input-button');
+    const stopBtn = document.getElementById('stop-voice-btn');
+    if (voiceBtn && stopBtn) {
+        voiceBtn.style.display = 'block';
+        stopBtn.style.display = 'none';
+    }
     document.getElementById('user-input').placeholder = 'メッセージを入力...';
     console.log('⏹️ 音声入力停止');
 }
@@ -518,15 +552,15 @@ function changeCharacter(event) {
 
     switch(character) {
         case 'nike':
-            characterName.textContent = 'ニケちゃん';
+            if (characterName) characterName.textContent = 'ニケちゃん';
             localStorage.setItem('current_character', 'nike');
             break;
         case 'friendly':
-            characterName.textContent = 'フレンドリー';
+            if (characterName) characterName.textContent = 'フレンドリー';
             localStorage.setItem('current_character', 'friendly');
             break;
         case 'professional':
-            characterName.textContent = 'プロフェッショナル';
+            if (characterName) characterName.textContent = 'プロフェッショナル';
             localStorage.setItem('current_character', 'professional');
             break;
     }
@@ -557,7 +591,7 @@ function displayWelcomeMessage() {
                 <p><strong>🎮 主な機能：</strong></p>
                 <ul>
                     <li>📷 画像をアップロードして質問できます</li>
-                    <li>📂 ドラッグ&ドロップで複数画像追加</li>
+                    <li>📂 ドラッグ&ド���ップで複数画像追加</li>
                     <li>🎤 音声入力で話しかけられます</li>
                     <li>🔊 VOICEVOX音声出力</li>
                     <li>📊 フローチャート・グラフ自動生成</li>
@@ -739,7 +773,7 @@ async function getAIResponse(userMessage, images = []) {
     }
 }
 
-// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応 + HTMLタグ混入防止 + YouTube埋め込み）
+// 🎨 AI応答を図解付きで表示（Mermaid v10 + YouTube）
 async function displayAIMessageWithVisuals(content) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
@@ -752,9 +786,8 @@ async function displayAIMessageWithVisuals(content) {
     // 1️⃣ YouTubeリンクを埋め込みに変換
     const youtubeRegex = /https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
     processedContent = processedContent.replace(youtubeRegex, (match, p1, p2, videoId) => {
-        // Validate video ID format (YouTube video IDs are exactly 11 characters: alphanumeric, underscore, and hyphen)
         if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
-            return match; // Return original URL if invalid
+            return match;
         }
         return `<div class="youtube-embed">
             <iframe 
@@ -797,12 +830,12 @@ async function displayAIMessageWithVisuals(content) {
         return placeholder;
     });
 
-    // 4️⃣ 通常のテキストをHTML化（Markdown処理）
+    // 4️⃣ 通常のテキストをHTML化（簡易Markdown）
     processedContent = processedContent
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
 
-    // 5️⃣ Mermaidブロックを戻す（HTMLタグが混入しない）
+    // 5️⃣ Mermaidブロックを戻す
     mermaidBlocks.forEach((block, index) => {
         const mermaidHtml = `<pre class="mermaid" id="${block.id}">${block.content}</pre>`;
         processedContent = processedContent.replace(`__MERMAID_${index}__`, mermaidHtml);
@@ -817,12 +850,10 @@ async function displayAIMessageWithVisuals(content) {
     messageDiv.innerHTML = processedContent;
     chatMessages.appendChild(messageDiv);
 
-    // 7️⃣ Mermaid描画（クリーンなコード）
-    if (mermaidBlocks.length > 0) {
+    // 7️⃣ Mermaid描画
+    if (mermaidBlocks.length > 0 && window.mermaid) {
         try {
-            await mermaid.run({
-                querySelector: '.mermaid'
-            });
+            await mermaid.run({ querySelector: '.mermaid' });
             console.log('✅ Mermaid描画成功');
         } catch (error) {
             console.error('❌ Mermaidエラー:', error);
@@ -978,6 +1009,7 @@ function speakWithBrowser(text) {
     }
 }
 
+// ⚙️ 設定モーダル
 function openSettings() {
     const existingModal = document.getElementById('settings-modal');
     if (existingModal) existingModal.remove();
@@ -1027,12 +1059,14 @@ function openSettings() {
                     </select>
                 </div>
                 
+                <!-- VOICEVOX キャラ -->
                 <div class="settings-group">
                     <label>🎭 VOICEVOXキャラクター：</label>
                     <select id="voicevox-character-settings">
-                        <option value="3" ${currentVoicevoxChar === '3' ? 'selected' : ''}>ずんだもん（ノーマル）</option>
-                        <option value="1" ${currentVoicevoxChar === '1' ? 'selected' : ''}>四国めたん（ノーマル）</option>
-                        <option value="8" ${currentVoicevoxChar === '8' ? 'selected' : ''}>春日部つむぎ（ノーマル）</option>
+                        <option value="3"  ${currentVoicevoxChar === '3'  ? 'selected' : ''}>ずんだもん（ノーマル）</option>
+                        <option value="2"  ${currentVoicevoxChar === '2'  ? 'selected' : ''}>四国めたん（ノーマル）</option>
+                        <option value="8"  ${currentVoicevoxChar === '8'  ? 'selected' : ''}>春日部つむぎ（ノーマル）</option>
+                        <option value="67" ${currentVoicevoxChar === '67' ? 'selected' : ''}>ナースロボ_タイプT</option>
                     </select>
                 </div>
                 
@@ -1084,6 +1118,10 @@ function saveSettings() {
 
     OPENAI_API_KEY = openaiKey;
     VOICEVOX_URL = voicevoxUrl;
+
+    // 右ペインの VOICEVOX セレクトがあれば同期
+    const uiSelect = document.getElementById('voicevox-character');
+    if (uiSelect) uiSelect.value = voicevoxChar;
 
     alert('✅ 設定を保存しました！');
     document.getElementById('settings-modal').remove();
