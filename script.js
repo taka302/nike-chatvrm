@@ -442,6 +442,7 @@ function animate() {
         }
         
         // 自動的に左右に揺れるアニメーション
+        // 周波数: 0.5 (ゆっくりとした揺れ) / 振幅: 0.1 ラジアン (約5.7度)
         if (currentVRM.scene) {
             currentVRM.scene.rotation.y = Math.sin(elapsedTime * 0.5) * 0.1;
         }
@@ -749,14 +750,17 @@ async function displayAIMessageWithVisuals(content) {
     let processedContent = content;
 
     // 1️⃣ YouTubeリンクを埋め込みに変換
-    const youtubeRegex = /https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/g;
+    const youtubeRegex = /https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
     processedContent = processedContent.replace(youtubeRegex, (match, p1, p2, videoId) => {
+        // Validate video ID format (YouTube video IDs are exactly 11 characters: alphanumeric, underscore, and hyphen)
+        if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+            return match; // Return original URL if invalid
+        }
         return `<div class="youtube-embed">
             <iframe 
                 width="100%" 
                 height="315" 
                 src="https://www.youtube.com/embed/${videoId}" 
-                frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
             </iframe>
