@@ -3,7 +3,6 @@
 // ========================================
 
 let OPENAI_API_KEY = '';
-let PEXELS_API_KEY = '';
 let VOICEVOX_URL = 'http://localhost:50021';
 let conversationHistory = [];
 let chartInstances = {};
@@ -34,7 +33,6 @@ window.addEventListener('DOMContentLoaded', () => {
 // 🔑 APIキーの読み込み
 function loadAPIKeys() {
     OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
-    PEXELS_API_KEY = localStorage.getItem('pexels_api_key') || '';
     VOICEVOX_URL = localStorage.getItem('voicevox_url') || 'http://localhost:50021';
     console.log('🔑 APIキー読み込み完了');
 }
@@ -47,8 +45,6 @@ function setupEventListeners() {
     const imageBtn = document.getElementById('image-btn');
     const userInput = document.getElementById('user-input');
     const settingsBtn = document.getElementById('settings-btn');
-    const characterSelect = document.getElementById('character-select');
-    const vrmFileInput = document.getElementById('vrm-file-input');
 
     if (sendBtn) {
         sendBtn.addEventListener('click', sendMessage);
@@ -79,14 +75,6 @@ function setupEventListeners() {
         imageBtn.addEventListener('click', () => {
             document.getElementById('image-file-input').click();
         });
-    }
-
-    if (characterSelect) {
-        characterSelect.addEventListener('change', changeCharacter);
-    }
-
-    if (vrmFileInput) {
-        vrmFileInput.addEventListener('change', loadVRMFile);
     }
 
     console.log('✅ イベントリスナー設定完了');
@@ -443,12 +431,20 @@ function animate() {
     const elapsedTime = clock.getElapsedTime();
 
     if (currentVRM) {
+        // VRMモデルの更新
         if (currentVRM.update) {
             currentVRM.update(deltaTime);
         }
         
+        // カスタムアニメーション（既存のコード）
         if (currentVRM.scene && currentVRM.scene.userData.animate) {
             currentVRM.scene.userData.animate(elapsedTime);
+        }
+        
+        // 自動的に左右に揺れるアニメーション
+        // 周波数: 0.5 (ゆっくりとした揺れ) / 振幅: 0.1 ラジアン (約5.7度)
+        if (currentVRM.scene) {
+            currentVRM.scene.rotation.y = Math.sin(elapsedTime * 0.5) * 0.1;
         }
     }
 
@@ -523,15 +519,15 @@ function changeCharacter(event) {
     switch(character) {
         case 'nike':
             characterName.textContent = 'ニケちゃん';
-            document.getElementById('voicevox-character').value = '3';
+            localStorage.setItem('current_character', 'nike');
             break;
         case 'friendly':
             characterName.textContent = 'フレンドリー';
-            document.getElementById('voicevox-character').value = '1';
+            localStorage.setItem('current_character', 'friendly');
             break;
         case 'professional':
             characterName.textContent = 'プロフェッショナル';
-            document.getElementById('voicevox-character').value = '8';
+            localStorage.setItem('current_character', 'professional');
             break;
     }
 }
@@ -734,10 +730,6 @@ async function getAIResponse(userMessage, images = []) {
         await displayAIMessageWithVisuals(aiMessage);
         await speakText(aiMessage);
 
-        if (PEXELS_API_KEY && userMessage) {
-            await fetchRelatedMedia(userMessage);
-        }
-
     } catch (error) {
         console.error('❌ エラー:', error);
         if (loadingDiv && loadingDiv.parentNode) {
@@ -747,7 +739,7 @@ async function getAIResponse(userMessage, images = []) {
     }
 }
 
-// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応 + HTMLタグ混入防止）
+// 🎨 AI応答を図解付きで表示（修正版 - Mermaid v10対応 + HTMLタグ混入防止 + YouTube埋め込み）
 async function displayAIMessageWithVisuals(content) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
@@ -757,7 +749,25 @@ async function displayAIMessageWithVisuals(content) {
 
     let processedContent = content;
 
-    // 1️⃣ まずMermaid図を抽出・保護
+    // 1️⃣ YouTubeリンクを埋め込みに変換
+    const youtubeRegex = /https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+    processedContent = processedContent.replace(youtubeRegex, (match, p1, p2, videoId) => {
+        // Validate video ID format (YouTube video IDs are exactly 11 characters: alphanumeric, underscore, and hyphen)
+        if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+            return match; // Return original URL if invalid
+        }
+        return `<div class="youtube-embed">
+            <iframe 
+                width="100%" 
+                height="315" 
+                src="https://www.youtube.com/embed/${videoId}" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>`;
+    });
+
+    // 2️⃣ Mermaid図を抽出・保護
     const mermaidBlocks = [];
     let mermaidIndex = 0;
     const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
@@ -772,7 +782,7 @@ async function displayAIMessageWithVisuals(content) {
         return placeholder;
     });
 
-    // 2️⃣ チャート図を抽出・保護
+    // 3️⃣ チャート図を抽出・保護
     const chartBlocks = [];
     let chartIndex = 0;
     const chartRegex = /```chart\n([\s\S]*?)```/g;
@@ -787,18 +797,18 @@ async function displayAIMessageWithVisuals(content) {
         return placeholder;
     });
 
-    // 3️⃣ 通常のテキストをHTML化（Markdown処理）
+    // 4️⃣ 通常のテキストをHTML化（Markdown処理）
     processedContent = processedContent
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
 
-    // 4️⃣ Mermaidブロックを戻す（HTMLタグが混入しない）
+    // 5️⃣ Mermaidブロックを戻す（HTMLタグが混入しない）
     mermaidBlocks.forEach((block, index) => {
         const mermaidHtml = `<pre class="mermaid" id="${block.id}">${block.content}</pre>`;
         processedContent = processedContent.replace(`__MERMAID_${index}__`, mermaidHtml);
     });
 
-    // 5️⃣ チャートブロックを戻す
+    // 6️⃣ チャートブロックを戻す
     chartBlocks.forEach((block, index) => {
         const chartHtml = `<div class="chart-container"><canvas id="${block.id}" class="chart-canvas"></canvas></div>`;
         processedContent = processedContent.replace(`__CHART_${index}__`, chartHtml);
@@ -807,7 +817,7 @@ async function displayAIMessageWithVisuals(content) {
     messageDiv.innerHTML = processedContent;
     chatMessages.appendChild(messageDiv);
 
-    // 6️⃣ Mermaid描画（クリーンなコード）
+    // 7️⃣ Mermaid描画（クリーンなコード）
     if (mermaidBlocks.length > 0) {
         try {
             await mermaid.run({
@@ -824,7 +834,7 @@ async function displayAIMessageWithVisuals(content) {
         }
     }
 
-    // 7️⃣ チャート描画
+    // 8️⃣ チャート描画
     chartBlocks.forEach(block => {
         renderChart(block.id, block.data);
     });
@@ -909,7 +919,7 @@ function renderChart(canvasId, chartDataString) {
 
 // 🔊 音声出力
 async function speakText(text) {
-    const voiceMode = document.getElementById('voice-select').value;
+    const voiceMode = localStorage.getItem('voice_mode') || 'voicevox';
     if (voiceMode === 'off') return;
 
     const cleanText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, '');
@@ -923,7 +933,7 @@ async function speakText(text) {
 
 async function speakWithVOICEVOX(text) {
     try {
-        const speaker = document.getElementById('voicevox-character').value;
+        const speaker = localStorage.getItem('voicevox_character') || '3';
         
         const queryResponse = await fetch(`${VOICEVOX_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`, {
             method: 'POST'
@@ -968,74 +978,67 @@ function speakWithBrowser(text) {
     }
 }
 
-async function fetchRelatedMedia(query) {
-    if (!PEXELS_API_KEY) return;
-
-    try {
-        const keywords = query.split(/[、。\s]+/).filter(w => w.length > 1);
-        const searchQuery = keywords[0] || query;
-
-        const response = await fetch(
-            `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&per_page=4&locale=ja-JP`,
-            { headers: { 'Authorization': PEXELS_API_KEY } }
-        );
-
-        const data = await response.json();
-        displayMediaResults(data.photos || []);
-    } catch (error) {
-        console.error('画像取得エラー:', error);
-    }
-}
-
-function displayMediaResults(photos) {
-    const mediaContainer = document.getElementById('media-grid');
-    if (!mediaContainer) return;
-
-    mediaContainer.innerHTML = '';
-
-    if (photos.length === 0) {
-        mediaContainer.innerHTML = '<p style="text-align: center; color: #888;">関連画像が見つかりませんでした</p>';
-        return;
-    }
-
-    photos.forEach(photo => {
-        const mediaItem = document.createElement('div');
-        mediaItem.className = 'media-item';
-        mediaItem.innerHTML = `
-            <img src="${photo.src.medium}" alt="${photo.alt || '画像'}" loading="lazy">
-            <p class="media-caption">${photo.alt || '関連画像'}</p>
-        `;
-        mediaContainer.appendChild(mediaItem);
-    });
-}
-
 function openSettings() {
     const existingModal = document.getElementById('settings-modal');
     if (existingModal) existingModal.remove();
 
     const currentOpenAI = localStorage.getItem('openai_api_key') || '';
-    const currentPexels = localStorage.getItem('pexels_api_key') || '';
     const currentVOICEVOX = localStorage.getItem('voicevox_url') || 'http://localhost:50021';
+    const currentCharacter = localStorage.getItem('current_character') || 'nike';
+    const currentVoiceMode = localStorage.getItem('voice_mode') || 'voicevox';
+    const currentVoicevoxChar = localStorage.getItem('voicevox_character') || '3';
 
     const settingsHTML = `
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
-                <h2>⚙️ API設定</h2>
+                <h2>⚙️ 設定</h2>
                 
+                <!-- API設定 -->
                 <div class="settings-group">
                     <label>🤖 ChatGPT APIキー：</label>
                     <input type="password" id="openai-key" value="${currentOpenAI}" placeholder="sk-...">
                     <small>画像読み取りにはGPT-4o APIキーが必要です</small>
                 </div>
                 
+                <!-- VRMファイル読み込み -->
                 <div class="settings-group">
-                    <label>📸 Pexels APIキー（任意）：</label>
-                    <input type="text" id="pexels-key" value="${currentPexels}" placeholder="Pexels API Key">
+                    <label>📂 VRMファイル：</label>
+                    <input type="file" id="vrm-file-input-settings" accept=".vrm">
+                    <small>VRoid Studio 1.0以降で作成したVRMファイルを読み込めます</small>
+                </div>
+                
+                <!-- キャラクター選択 -->
+                <div class="settings-group">
+                    <label>🎭 キャラクター選択：</label>
+                    <select id="character-select-settings">
+                        <option value="nike" ${currentCharacter === 'nike' ? 'selected' : ''}>ニケちゃん</option>
+                        <option value="friendly" ${currentCharacter === 'friendly' ? 'selected' : ''}>フレンドリー</option>
+                        <option value="professional" ${currentCharacter === 'professional' ? 'selected' : ''}>プロフェッショナル</option>
+                    </select>
+                </div>
+                
+                <!-- 音声設定 -->
+                <div class="settings-group">
+                    <label>🔊 音声出力：</label>
+                    <select id="voice-select-settings">
+                        <option value="voicevox" ${currentVoiceMode === 'voicevox' ? 'selected' : ''}>VOICEVOX（高品質）</option>
+                        <option value="browser" ${currentVoiceMode === 'browser' ? 'selected' : ''}>ブラウザ標準</option>
+                        <option value="off" ${currentVoiceMode === 'off' ? 'selected' : ''}>オフ</option>
+                    </select>
                 </div>
                 
                 <div class="settings-group">
-                    <label>🔊 VOICEVOX URL（任意）：</label>
-                    <input type="text" id="voicevox-url" value="${currentVOICEVOX}" placeholder="http://localhost:50021">
+                    <label>🎭 VOICEVOXキャラクター：</label>
+                    <select id="voicevox-character-settings">
+                        <option value="3" ${currentVoicevoxChar === '3' ? 'selected' : ''}>ずんだもん（ノーマル）</option>
+                        <option value="1" ${currentVoicevoxChar === '1' ? 'selected' : ''}>四国めたん（ノーマル）</option>
+                        <option value="8" ${currentVoicevoxChar === '8' ? 'selected' : ''}>春日部つむぎ（ノーマル）</option>
+                    </select>
+                </div>
+                
+                <div class="settings-group">
+                    <label>🔊 VOICEVOX URL：</label>
+                    <input type="text" id="voicevox-url-settings" value="${currentVOICEVOX}" placeholder="http://localhost:50021">
                 </div>
                 
                 <div class="settings-buttons">
@@ -1048,31 +1051,42 @@ function openSettings() {
 
     document.body.insertAdjacentHTML('beforeend', settingsHTML);
 
-    document.getElementById('save-settings').addEventListener('click', () => {
-        const openaiKey = document.getElementById('openai-key').value.trim();
-        const pexelsKey = document.getElementById('pexels-key').value.trim();
-        const voicevoxUrl = document.getElementById('voicevox-url').value.trim();
-
-        if (!openaiKey) {
-            alert('⚠️ ChatGPT APIキーは必須です！');
-            return;
-        }
-
-        localStorage.setItem('openai_api_key', openaiKey);
-        localStorage.setItem('pexels_api_key', pexelsKey);
-        localStorage.setItem('voicevox_url', voicevoxUrl);
-
-        OPENAI_API_KEY = openaiKey;
-        PEXELS_API_KEY = pexelsKey;
-        VOICEVOX_URL = voicevoxUrl;
-
-        alert('✅ 設定を保存しました！');
-        document.getElementById('settings-modal').remove();
-    });
-
+    // イベントリスナーを追加
+    document.getElementById('save-settings').addEventListener('click', saveSettings);
     document.getElementById('close-settings').addEventListener('click', () => {
         document.getElementById('settings-modal').remove();
     });
+
+    // VRMファイル読み込み
+    document.getElementById('vrm-file-input-settings').addEventListener('change', loadVRMFile);
+
+    // キャラクター選択
+    document.getElementById('character-select-settings').addEventListener('change', (e) => {
+        changeCharacter(e);
+    });
+}
+
+function saveSettings() {
+    const openaiKey = document.getElementById('openai-key').value.trim();
+    const voiceMode = document.getElementById('voice-select-settings').value;
+    const voicevoxChar = document.getElementById('voicevox-character-settings').value;
+    const voicevoxUrl = document.getElementById('voicevox-url-settings').value.trim();
+
+    if (!openaiKey) {
+        alert('⚠️ ChatGPT APIキーは必須です！');
+        return;
+    }
+
+    localStorage.setItem('openai_api_key', openaiKey);
+    localStorage.setItem('voice_mode', voiceMode);
+    localStorage.setItem('voicevox_character', voicevoxChar);
+    localStorage.setItem('voicevox_url', voicevoxUrl);
+
+    OPENAI_API_KEY = openaiKey;
+    VOICEVOX_URL = voicevoxUrl;
+
+    alert('✅ 設定を保存しました！');
+    document.getElementById('settings-modal').remove();
 }
 
 console.log('✅ script.js 読み込み完了');
