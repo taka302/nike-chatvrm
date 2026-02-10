@@ -14,6 +14,7 @@ let uploadedImages = [];
 // 🎮 VRM関連
 let scene, camera, renderer, currentVRM, clock;
 let isVRMLoaded = false;
+let blinkIntervalId = null; // まばたきアニメーション用のインターバルID
 
 // 🎤 音声関連
 let recognition = null;
@@ -405,9 +406,15 @@ async function loadVRM(arrayBuffer) {
                     }
                 });
                 
+                // 既存のまばたきインターバルをクリア
+                if (blinkIntervalId) {
+                    clearInterval(blinkIntervalId);
+                    blinkIntervalId = null;
+                }
+                
                 // 表情アニメーション対応（まばたき）
                 if (vrm.expressionManager) {
-                    setInterval(() => {
+                    blinkIntervalId = setInterval(() => {
                         // まばたきアニメーション
                         const blinkValue = Math.random() > 0.9 ? 1 : 0;
                         vrm.expressionManager.setValue('blink', blinkValue);
@@ -459,10 +466,12 @@ function animate() {
             const time = elapsedTime;
             currentVRM.scene.rotation.y = Math.sin(time * 0.3) * 0.05; // 左右に少し揺れる
             
-            // 呼吸アニメーション
-            if (currentVRM.scene.children[0]) {
-                currentVRM.scene.children[0].position.y = Math.sin(time * 2) * 0.02;
-            }
+            // 呼吸アニメーション - より安全な実装
+            currentVRM.scene.traverse((object) => {
+                if (object.isMesh && object.parent === currentVRM.scene) {
+                    object.position.y = Math.sin(time * 2) * 0.02;
+                }
+            });
         }
         
         if (currentVRM.scene && currentVRM.scene.userData.animate) {
@@ -1047,7 +1056,6 @@ function openSettings() {
     if (existingModal) existingModal.remove();
 
     const currentOpenAI = localStorage.getItem('openai_api_key') || '';
-    const currentPexels = localStorage.getItem('pexels_api_key') || '';
     const currentVOICEVOX = localStorage.getItem('voicevox_url') || 'http://localhost:50021';
     const currentCharacter = localStorage.getItem('character_type') || 'nike';
     const currentVoiceMode = localStorage.getItem('voice_mode') || 'voicevox';
@@ -1065,11 +1073,6 @@ function openSettings() {
                         <label>🤖 ChatGPT APIキー：</label>
                         <input type="password" id="openai-key" value="${currentOpenAI}" placeholder="sk-...">
                         <small>画像読み取りにはGPT-4o APIキーが必要です</small>
-                    </div>
-                    
-                    <div class="settings-group">
-                        <label>📸 Pexels APIキー（任意・未使用）：</label>
-                        <input type="text" id="pexels-key" value="${currentPexels}" placeholder="Pexels API Key">
                     </div>
                     
                     <div class="settings-group">
@@ -1141,7 +1144,6 @@ function openSettings() {
 
     document.getElementById('save-settings').addEventListener('click', () => {
         const openaiKey = document.getElementById('openai-key').value.trim();
-        const pexelsKey = document.getElementById('pexels-key').value.trim();
         const voicevoxUrl = document.getElementById('voicevox-url').value.trim();
         const characterType = document.getElementById('character-type-select').value;
         const voiceMode = document.getElementById('voice-mode-select').value;
@@ -1153,14 +1155,12 @@ function openSettings() {
         }
 
         localStorage.setItem('openai_api_key', openaiKey);
-        localStorage.setItem('pexels_api_key', pexelsKey);
         localStorage.setItem('voicevox_url', voicevoxUrl);
         localStorage.setItem('character_type', characterType);
         localStorage.setItem('voice_mode', voiceMode);
         localStorage.setItem('voicevox_character', voicevoxChar);
 
         OPENAI_API_KEY = openaiKey;
-        PEXELS_API_KEY = pexelsKey;
         VOICEVOX_URL = voicevoxUrl;
 
         alert('✅ 設定を保存しました！');
