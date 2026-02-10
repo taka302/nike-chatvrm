@@ -47,8 +47,6 @@ function setupEventListeners() {
     const imageBtn = document.getElementById('image-btn');
     const userInput = document.getElementById('user-input');
     const settingsBtn = document.getElementById('settings-btn');
-    const characterSelect = document.getElementById('character-select');
-    const vrmFileInput = document.getElementById('vrm-file-input');
 
     if (sendBtn) {
         sendBtn.addEventListener('click', sendMessage);
@@ -79,14 +77,6 @@ function setupEventListeners() {
         imageBtn.addEventListener('click', () => {
             document.getElementById('image-file-input').click();
         });
-    }
-
-    if (characterSelect) {
-        characterSelect.addEventListener('change', changeCharacter);
-    }
-
-    if (vrmFileInput) {
-        vrmFileInput.addEventListener('change', loadVRMFile);
     }
 
     console.log('✅ イベントリスナー設定完了');
@@ -408,6 +398,22 @@ async function loadVRM(arrayBuffer) {
                 currentVRM = vrm;
                 scene.add(vrm.scene);
                 
+                // アニメーション設定
+                vrm.scene.traverse((object) => {
+                    if (object.isMesh) {
+                        object.frustumCulled = false;
+                    }
+                });
+                
+                // 表情アニメーション対応（まばたき）
+                if (vrm.expressionManager) {
+                    setInterval(() => {
+                        // まばたきアニメーション
+                        const blinkValue = Math.random() > 0.9 ? 1 : 0;
+                        vrm.expressionManager.setValue('blink', blinkValue);
+                    }, 3000);
+                }
+                
                 const box = new THREE.Box3().setFromObject(vrm.scene);
                 const center = box.getCenter(new THREE.Vector3());
                 const size = box.getSize(new THREE.Vector3());
@@ -435,7 +441,7 @@ async function loadVRM(arrayBuffer) {
     }
 }
 
-// アニメーションループ（修正版）
+// アニメーションループ（修正版 - 揺れ・呼吸アニメーション追加）
 function animate() {
     requestAnimationFrame(animate);
 
@@ -443,8 +449,20 @@ function animate() {
     const elapsedTime = clock.getElapsedTime();
 
     if (currentVRM) {
+        // VRMモデルの更新
         if (currentVRM.update) {
             currentVRM.update(deltaTime);
+        }
+        
+        // 基本的な揺れアニメーション
+        if (currentVRM.scene) {
+            const time = elapsedTime;
+            currentVRM.scene.rotation.y = Math.sin(time * 0.3) * 0.05; // 左右に少し揺れる
+            
+            // 呼吸アニメーション
+            if (currentVRM.scene.children[0]) {
+                currentVRM.scene.children[0].position.y = Math.sin(time * 2) * 0.02;
+            }
         }
         
         if (currentVRM.scene && currentVRM.scene.userData.animate) {
@@ -517,23 +535,60 @@ function stopVoiceInput() {
 }
 
 function changeCharacter(event) {
-    const character = event.target.value;
-    const characterName = document.getElementById('character-name');
-
-    switch(character) {
-        case 'nike':
-            characterName.textContent = 'ニケちゃん';
-            document.getElementById('voicevox-character').value = '3';
-            break;
-        case 'friendly':
-            characterName.textContent = 'フレンドリー';
-            document.getElementById('voicevox-character').value = '1';
-            break;
-        case 'professional':
-            characterName.textContent = 'プロフェッショナル';
-            document.getElementById('voicevox-character').value = '8';
-            break;
+    const characterType = event.target.value;
+    
+    const characterSettings = {
+        nike: {
+            name: 'ニケちゃん',
+            personality: 'NIKKE風の明るく戦闘的なキャラクター。勇敢で仲間思い。',
+            color: 0xff6b9d,
+            voicevoxChar: '3',
+            systemPrompt: 'あなたは「ニケ」というNIKKE（人造人間）です。明るく元気で、仲間を大切にする戦士です。戦闘的な話題も得意ですが、日常会話も楽しみます。'
+        },
+        friendly: {
+            name: 'フレンドリー',
+            personality: '親しみやすい友達のような性格',
+            color: 0x667eea,
+            voicevoxChar: '1',
+            systemPrompt: 'あなたは親しみやすく、フレンドリーなアシスタントです。'
+        },
+        professional: {
+            name: 'プロフェッショナル',
+            personality: 'ビジネスライクで丁寧な対応',
+            color: 0x4a5568,
+            voicevoxChar: '8',
+            systemPrompt: 'あなたはプロフェッショナルなアシスタントです。丁寧で正確な情報提供を心がけます。'
+        },
+        custom: {
+            name: 'カスタム',
+            personality: 'カスタムVRMモデル',
+            color: 0x667eea,
+            voicevoxChar: '3',
+            systemPrompt: 'あなたは親しみやすいアシスタントです。'
+        }
+    };
+    
+    const character = characterSettings[characterType] || characterSettings.nike;
+    
+    // VOICEVOXキャラクターを設定
+    localStorage.setItem('voicevox_character', character.voicevoxChar);
+    
+    // 会話履歴にシステムプロンプトを設定
+    conversationHistory = [
+        { role: 'system', content: character.systemPrompt }
+    ];
+    
+    // VRMモデルの色を変更（デフォルトモデルの場合）
+    if (currentVRM && currentVRM.scene && !isVRMLoaded) {
+        currentVRM.scene.children.forEach(child => {
+            if (child.material) {
+                child.material.color.setHex(character.color);
+            }
+        });
     }
+    
+    localStorage.setItem('character_type', characterType);
+    console.log(`✅ キャラクター変更: ${character.name}`);
 }
 
 // 💬 ウェルカムメッセージ
@@ -928,7 +983,7 @@ function renderChart(canvasId, chartDataString) {
 
 // 🔊 音声出力
 async function speakText(text) {
-    const voiceMode = document.getElementById('voice-select').value;
+    const voiceMode = localStorage.getItem('voice_mode') || 'voicevox';
     if (voiceMode === 'off') return;
 
     const cleanText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, '');
@@ -942,7 +997,7 @@ async function speakText(text) {
 
 async function speakWithVOICEVOX(text) {
     try {
-        const speaker = document.getElementById('voicevox-character').value;
+        const speaker = localStorage.getItem('voicevox_character') || '3';
         
         const queryResponse = await fetch(`${VOICEVOX_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`, {
             method: 'POST'
@@ -994,26 +1049,77 @@ function openSettings() {
     const currentOpenAI = localStorage.getItem('openai_api_key') || '';
     const currentPexels = localStorage.getItem('pexels_api_key') || '';
     const currentVOICEVOX = localStorage.getItem('voicevox_url') || 'http://localhost:50021';
+    const currentCharacter = localStorage.getItem('character_type') || 'nike';
+    const currentVoiceMode = localStorage.getItem('voice_mode') || 'voicevox';
+    const currentVoicevoxChar = localStorage.getItem('voicevox_character') || '3';
 
     const settingsHTML = `
         <div class="settings-modal" id="settings-modal">
             <div class="settings-content">
-                <h2>⚙️ API設定</h2>
+                <h2>⚙️ 設定</h2>
                 
-                <div class="settings-group">
-                    <label>🤖 ChatGPT APIキー：</label>
-                    <input type="password" id="openai-key" value="${currentOpenAI}" placeholder="sk-...">
-                    <small>画像読み取りにはGPT-4o APIキーが必要です</small>
+                <!-- API設定 -->
+                <div class="settings-section">
+                    <h3>🔑 API設定</h3>
+                    <div class="settings-group">
+                        <label>🤖 ChatGPT APIキー：</label>
+                        <input type="password" id="openai-key" value="${currentOpenAI}" placeholder="sk-...">
+                        <small>画像読み取りにはGPT-4o APIキーが必要です</small>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label>📸 Pexels APIキー（任意・未使用）：</label>
+                        <input type="text" id="pexels-key" value="${currentPexels}" placeholder="Pexels API Key">
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label>🔊 VOICEVOX URL：</label>
+                        <input type="text" id="voicevox-url" value="${currentVOICEVOX}" placeholder="http://localhost:50021">
+                    </div>
                 </div>
                 
-                <div class="settings-group">
-                    <label>📸 Pexels APIキー（任意）：</label>
-                    <input type="text" id="pexels-key" value="${currentPexels}" placeholder="Pexels API Key">
+                <!-- キャラクター設定 -->
+                <div class="settings-section">
+                    <h3>🎭 キャラクター設定</h3>
+                    <div class="settings-group">
+                        <label>キャラクタータイプ：</label>
+                        <select id="character-type-select">
+                            <option value="nike" ${currentCharacter === 'nike' ? 'selected' : ''}>ニケちゃん（NIKKE風）</option>
+                            <option value="friendly" ${currentCharacter === 'friendly' ? 'selected' : ''}>フレンドリー</option>
+                            <option value="professional" ${currentCharacter === 'professional' ? 'selected' : ''}>プロフェッショナル</option>
+                            <option value="custom" ${currentCharacter === 'custom' ? 'selected' : ''}>カスタム（VRM読込）</option>
+                        </select>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label>🎮 VRMファイル読み込み：</label>
+                        <button id="load-vrm-btn" class="btn-secondary">📂 VRMファイルを選択</button>
+                        <input type="file" id="settings-vrm-input" accept=".vrm" style="display: none;">
+                    </div>
                 </div>
                 
-                <div class="settings-group">
-                    <label>🔊 VOICEVOX URL（任意）：</label>
-                    <input type="text" id="voicevox-url" value="${currentVOICEVOX}" placeholder="http://localhost:50021">
+                <!-- 音声設定 -->
+                <div class="settings-section">
+                    <h3>🔊 音声設定</h3>
+                    <div class="settings-group">
+                        <label>音声出力：</label>
+                        <select id="voice-mode-select">
+                            <option value="voicevox" ${currentVoiceMode === 'voicevox' ? 'selected' : ''}>VOICEVOX（高品質）</option>
+                            <option value="browser" ${currentVoiceMode === 'browser' ? 'selected' : ''}>ブラウザ標準</option>
+                            <option value="off" ${currentVoiceMode === 'off' ? 'selected' : ''}>オフ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label>🎭 VOICEVOXキャラクター：</label>
+                        <select id="voicevox-char-select">
+                            <option value="3" ${currentVoicevoxChar === '3' ? 'selected' : ''}>ずんだもん（ノーマル）</option>
+                            <option value="1" ${currentVoicevoxChar === '1' ? 'selected' : ''}>四国めたん（ノーマル）</option>
+                            <option value="8" ${currentVoicevoxChar === '8' ? 'selected' : ''}>春日部つむぎ</option>
+                            <option value="2" ${currentVoicevoxChar === '2' ? 'selected' : ''}>四国めたん（あまあま）</option>
+                            <option value="46" ${currentVoicevoxChar === '46' ? 'selected' : ''}>ナースロボ＿タイプT</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="settings-buttons">
@@ -1026,10 +1132,20 @@ function openSettings() {
 
     document.body.insertAdjacentHTML('beforeend', settingsHTML);
 
+    // イベントリスナー設定
+    document.getElementById('load-vrm-btn').addEventListener('click', () => {
+        document.getElementById('settings-vrm-input').click();
+    });
+
+    document.getElementById('settings-vrm-input').addEventListener('change', loadVRMFile);
+
     document.getElementById('save-settings').addEventListener('click', () => {
         const openaiKey = document.getElementById('openai-key').value.trim();
         const pexelsKey = document.getElementById('pexels-key').value.trim();
         const voicevoxUrl = document.getElementById('voicevox-url').value.trim();
+        const characterType = document.getElementById('character-type-select').value;
+        const voiceMode = document.getElementById('voice-mode-select').value;
+        const voicevoxChar = document.getElementById('voicevox-char-select').value;
 
         if (!openaiKey) {
             alert('⚠️ ChatGPT APIキーは必須です！');
@@ -1039,6 +1155,9 @@ function openSettings() {
         localStorage.setItem('openai_api_key', openaiKey);
         localStorage.setItem('pexels_api_key', pexelsKey);
         localStorage.setItem('voicevox_url', voicevoxUrl);
+        localStorage.setItem('character_type', characterType);
+        localStorage.setItem('voice_mode', voiceMode);
+        localStorage.setItem('voicevox_character', voicevoxChar);
 
         OPENAI_API_KEY = openaiKey;
         PEXELS_API_KEY = pexelsKey;
@@ -1046,6 +1165,9 @@ function openSettings() {
 
         alert('✅ 設定を保存しました！');
         document.getElementById('settings-modal').remove();
+        
+        // キャラクター変更を反映
+        changeCharacter({ target: { value: characterType } });
     });
 
     document.getElementById('close-settings').addEventListener('click', () => {
